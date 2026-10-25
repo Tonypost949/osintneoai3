@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>OSINT Neo AI & Legal Action Command Center</title>
+    <meta name="description" content="Master Evidentiary Record, /ailaws Statutory Proof Matrix, Outreach Dispatch Dashboard, and Evidence Locker for HBNC Case 3 (Knabb v. City of Huntington Beach)." />
+    <meta property="og:title" content="OSINT Neo AI & Legal Action Command Center" />
+    <meta property="og:description" content="Master Evidentiary Record, /ailaws Statutory Proof Matrix, Outreach Dispatch Dashboard, and Evidence Locker for HBNC Case 3 (Knabb v. City of Huntington Beach)." />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;0,6..72,700;1,6..72,400&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  </head>
+  <body>
+    <div id="root"></div>
+
+    <!-- Text File (.md, .txt) Viewer Modal -->
+    <div id="globalTextModal" class="hidden fixed inset-0 z-[9999] bg-slate-950/80 backdrop-blur-sm items-center justify-center p-4">
+      <div class="bg-slate-900 border border-slate-700 rounded-xl shadow-2xl max-w-3xl w-full max-h-[85vh] flex flex-col overflow-hidden text-slate-100 font-sans">
+        <div class="px-4 py-3 bg-slate-950 border-b border-slate-800 flex items-center justify-between gap-3">
+          <div class="flex items-center gap-2 min-w-0">
+            <span class="text-xs font-mono font-bold px-2 py-0.5 rounded bg-blue-950 text-blue-300 border border-blue-800">DOC</span>
+            <h3 id="globalTextModalTitle" class="text-sm font-bold text-white truncate">Document Viewer</h3>
+          </div>
+          <div class="flex items-center gap-2 shrink-0">
+            <a id="globalTextModalRawLink" href="#" target="_blank" class="px-2.5 py-1 text-xs rounded bg-blue-600 hover:bg-blue-500 text-white font-medium">Open in New Tab</a>
+            <button id="globalTextModalClose" class="px-2.5 py-1 text-xs rounded bg-slate-800 hover:bg-slate-700 text-slate-300">✕ Close</button>
+          </div>
+        </div>
+        <div class="p-4 overflow-y-auto flex-1 font-mono text-xs leading-relaxed whitespace-pre-wrap text-slate-200 bg-slate-950/50" id="globalTextModalBody">
+          Loading document...
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // Global click handler to capture .md and .txt links and display in modal
+      document.addEventListener('click', function(e) {
+        const target = e.target.closest('a');
+        if (!target) return;
+        const href = target.getAttribute('href');
+        if (!href) return;
+        const cleanHref = href.split('?')[0].split('#')[0];
+        if (cleanHref.endsWith('.md') || cleanHref.endsWith('.txt')) {
+          e.preventDefault();
+          const modal = document.getElementById('globalTextModal');
+          const title = document.getElementById('globalTextModalTitle');
+          const body = document.getElementById('globalTextModalBody');
+          const rawLink = document.getElementById('globalTextModalRawLink');
+          if (!modal || !title || !body || !rawLink) return;
+
+          title.textContent = cleanHref.split('/').pop();
+          rawLink.href = href;
+          body.textContent = 'Loading ' + href + '...';
+          modal.classList.remove('hidden');
+          modal.classList.add('flex');
+
+          fetch(href)
+            .then(res => {
+              if (!res.ok) throw new Error('HTTP ' + res.status);
+              return res.text();
+            })
+            .then(text => {
+              body.textContent = text;
+            })
+            .catch(err => {
+              body.textContent = 'Document content: ' + href + '\\n\\n(File available at raw path: ' + href + ')';
+            });
+        }
+      });
+
+      document.getElementById('globalTextModalClose')?.addEventListener('click', function() {
+        const modal = document.getElementById('globalTextModal');
+        if (modal) {
+          modal.classList.add('hidden');
+          modal.classList.remove('flex');
+        }
+      });
+      document.getElementById('globalTextModal')?.addEventListener('click', function(e) {
+        if (e.target === this) {
+          this.classList.add('hidden');
+          this.classList.remove('flex');
+        }
+      });
+    </script>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
+

@@ -1,0 +1,6 @@
+{
+  "name": "OSINT Neo AI & Legal Action Command Center",
+  "description": "Master Evidentiary Record, /ailaws Statutory Proof Matrix, Outreach Dispatch Dashboard, and Evidence Locker for HBNC Case 3 (Knabb v. City of Huntington Beach).",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
