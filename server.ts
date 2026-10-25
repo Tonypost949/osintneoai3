@@ -70,6 +70,7 @@ function getApiKeyPool(req?: Request): string[] {
     process.env.GEMINI_API_KEY_3,
     process.env.GEMINI_API_KEY_4,
     process.env.GEMINI_API_KEY_5,
+    process.env.GEMINI_API_KEY_6,
     process.env.API_KEY,
     process.env.GOOGLE_API_KEY,
     ...loadLocalProfileVaultKeys(),
