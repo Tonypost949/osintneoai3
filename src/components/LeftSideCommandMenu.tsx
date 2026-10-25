@@ -26,6 +26,7 @@ import {
   Cpu,
   Bot,
   Network,
+  Coins,
 } from 'lucide-react';
 import { AppViewportTab, CINEMATIC_DEMO_SCENES } from '../data/hbncDemoScript';
 import { StudioVoicePersona, STUDIO_PERSONAS, playCyberChime } from '../utils/audioEngine';
@@ -89,6 +90,7 @@ export const LeftSideCommandMenu: React.FC<LeftSideCommandMenuProps> = ({
     { id: 'maltego', label: 'Canvas Maltego Entity Graph', icon: Network, badge: '15 Nodes / 18 Links' },
     { id: 'master', label: 'Master Record & Timeline', icon: ShieldAlert, badge: '49× Cr(VI)' },
     { id: 'void-deals', label: 'Form 700 & 2 Void Deals', icon: Gavel, badge: '$326M Disgorgement' },
+    { id: 'crypto-transparency', label: 'Transparency Token & Web3 Crypto', icon: Coins, badge: 'TFT · OSINT · PAT' },
     { id: 'ailaws', label: '/ailaws Statutory Proof Matrix', icon: Scale, badge: 'ADA & RCRA' },
     { id: 'screener', label: 'Victim Screener & Uploads', icon: UserCheck, badge: 'HBNC Victim #' },
     { id: 'integrations', label: '3D Plume, GIS & Studio Secrets', icon: Zap, badge: '6 Cores Live' },

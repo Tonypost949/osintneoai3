@@ -5,6 +5,7 @@ import { MasterRecordView } from './components/MasterRecordView';
 import { AilawsMatrixView } from './components/AilawsMatrixView';
 import { VictimScreenerView } from './components/VictimScreenerView';
 import { VoidAbInitioDealsView } from './components/VoidAbInitioDealsView';
+import { CryptoTransparencyTokenView } from './components/CryptoTransparencyTokenView';
 import { OutreachDashboardView } from './components/OutreachDashboardView';
 import { OsintLibraryView } from './components/OsintLibraryView';
 import { EvidenceLockerView } from './components/EvidenceLockerView';
@@ -24,7 +25,7 @@ import {
   getBestVoiceForPersona,
   fetchGeminiNeuralAudio,
 } from './utils/audioEngine';
-import { Gavel, Layers, Network, Menu, Zap, Lock, Upload } from 'lucide-react';
+import { Gavel, Layers, Network, Menu, Zap, Lock, Upload, Coins } from 'lucide-react';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<AppViewportTab>('evidence-law-hybrid');
@@ -311,6 +312,18 @@ export default function App() {
               </button>
 
               <button
+                onClick={() => setActiveTab('crypto-transparency')}
+                className={`flex items-center gap-1.5 px-2.5 py-1 rounded font-bold transition-all whitespace-nowrap cursor-pointer ${
+                  activeTab === 'crypto-transparency'
+                    ? 'bg-amber-900 text-amber-200 border border-amber-400 shadow-lg shadow-amber-500/20'
+                    : 'text-amber-300 hover:text-amber-200 hover:bg-slate-800 border border-amber-500/40'
+                }`}
+              >
+                <Coins className="w-3.5 h-3.5 text-amber-400" />
+                <span>⛓️ Transparency Token (TFT / OSINT / PAT) &amp; Sepolia Escrow</span>
+              </button>
+
+              <button
                 onClick={() => setActiveTab('integrations')}
                 className={`flex items-center gap-1.5 px-2.5 py-1 rounded font-bold transition-all whitespace-nowrap cursor-pointer ${
                   activeTab === 'integrations'
@@ -381,6 +394,10 @@ export default function App() {
 
         {activeTab === 'void-deals' && (
           <VoidAbInitioDealsView />
+        )}
+
+        {activeTab === 'crypto-transparency' && (
+          <CryptoTransparencyTokenView onOpenFileInViewer={handleOpenFileViewer} />
         )}
 
         {activeTab === 'outreach' && (

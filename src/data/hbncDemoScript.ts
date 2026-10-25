@@ -3,6 +3,7 @@ export type AppViewportTab =
   | 'ailaws'
   | 'screener'
   | 'void-deals'
+  | 'crypto-transparency'
   | 'outreach'
   | 'osint'
   | 'locker'
@@ -50,7 +51,7 @@ export const CINEMATIC_DEMO_SCENES: CinematicSceneConfig[] = [
     title: 'Act 1: OSINT Neo AI — Live Investigation & Legal Matrix',
     subtitle: 'Orange County Homeless & Disabled Displacement · Whistleblower Anthony DiMarcello III · Read-Only + Live Upload',
     narrative:
-      'OSINT Neo AI, Live Investigation and Legal Matrix. The current demo presentation of the system is a real investigation into the ongoing displacement and abuse of Orange County, California’s homeless and disabled population. At 17631 Cameron Lane, the Huntington Beach Navigation Center was built over an industrial toxic plume measuring 980 micrograms per kilogram of hexavalent chromium—49 times the state residential screening limit—under a 1-year asphalt cap contract that breached beneath resident beds on November 7, 2023, causing six documented hospitalizations and two deaths, alongside 326.1 million dollars in Form 700 void ab initio public land deals mapped across our 617-entity forensic RICO graph. This case was brought to the system by federal whistleblower and relator Anthony Michael DiMarcello III—who holds GAO FraudNet docket COMP-26-004512 and FBI control record 20IC002—and his 62-year-old disabled mother Elizabeth Tina Petruccio. After sleeping directly over the breached floor cap, Elizabeth suffered a 103,752 white blood cell pleural empyema, septic shock, intubation, spinal osteomyelitis, and a 44-pound weight collapse from 160 pounds down to 116 pounds across 62 days institutionalized. While she was intubated in the ICU, the shelter terminated her bed under a 7-day absence rule, barred her from returning for 30 days, and subjected the relator to violent guard ejection and institutional stonewalling across 184 formal agency dispatches. The purpose of this system at osintneoai.me is to be a voice for those who cannot get help—like the relator and the victims—and the AI Laws Legal Matrix helps with that too by mapping every primary exhibit to controlling federal and California statutes and generating ready-to-serve legal demands. Finally, this system is protected in Read-Only, Comment-Only mode so the master record can never be altered, while input from anyone else—such as any type of file, folder, or zip archive—can be uploaded and the data will be incorporated live into the system to see the immediate correlated results across every tool.',
+      'OSINT Neo AI, Live Investigation and Legal Matrix. The current demo presentation of the system is a real investigation into the ongoing displacement and abuse of Orange County, California’s homeless and disabled population. At 17631 Cameron Lane, the Huntington Beach Navigation Center was built over an industrial toxic plume measuring 980 micrograms per kilogram of hexavalent chromium—49 times the state residential screening limit—under a 1-year asphalt cap contract that breached beneath resident beds on November 7, 2023, causing six documented hospitalizations and two deaths, alongside 326.1 million dollars in Form 700 void ab initio public land deals mapped across our 617-entity forensic RICO graph and anchored on-chain by our Web3 Transparency Token and 40/30/30 Sepolia crypto escrow architecture. This case was brought to the system by federal whistleblower and relator Anthony Michael DiMarcello III—who holds GAO FraudNet docket COMP-26-004512 and FBI control record 20IC002—and his 62-year-old disabled mother Elizabeth Tina Petruccio. After sleeping directly over the breached floor cap, Elizabeth suffered a 103,752 white blood cell pleural empyema, septic shock, intubation, spinal osteomyelitis, and a 44-pound weight collapse from 160 pounds down to 116 pounds across 62 days institutionalized. While she was intubated in the ICU, the shelter terminated her bed under a 7-day absence rule, barred her from returning for 30 days, and subjected the relator to violent guard ejection and institutional stonewalling across 184 formal agency dispatches. The purpose of this system at osintneoai.me is to be a voice for those who cannot get help—like the relator and the victims—and the AI Laws Legal Matrix and Transparency Token crypto ledger help with that too by mapping every primary exhibit to controlling federal and California statutes, minting immutable Tax-Funded Transparency Tokens and Public Audit Tokens on Ethereum Sepolia, and generating ready-to-serve legal demands. Finally, this system is protected in Read-Only, Comment-Only mode so the master record can never be altered, while input from anyone else—such as any type of file, folder, or zip archive—can be uploaded and the data will be incorporated live into the system to see the immediate correlated results across every tool.',
     targetAppTab: 'evidence-law-hybrid',
     targetElementId: 'evidence-law-hybrid-root',
     evidenceModalTarget: 'navigation_center_001.jpg',
@@ -549,10 +550,60 @@ export const CINEMATIC_DEMO_SCENES: CinematicSceneConfig[] = [
     ],
   },
   {
-    id: 'ACT_10_OUTREACH_SCREENER_AND_EVIDENCE_LOCKER',
+    id: 'ACT_10_CRYPTO_TRANSPARENCY_TOKEN_AND_WEB3_ESCROW',
     actNumber: '10',
+    featureBadge: 'TOOL: TRANSPARENCY TOKEN (TFT / PAT / OSINT) · SEPOLIA 40/30/30 ESCROW & ERROR COIN',
+    title: 'Act 10: Transparency Token (TFT / PAT / OSINT), Sepolia 40/30/30 Escrow & Error Coin',
+    subtitle: '5 Verified Sepolia Smart Contracts · StakingGate (100 OSINT) · MultiPoolEscrow (40/30/30) · Law 16 Error Coin',
+    narrative:
+      'In Act 10, the system opens the built-in Web3 Crypto and Transparency Token Intelligence Exchange deployed on the Ethereum Sepolia Testnet across five verified smart contracts. Under our foundational Truth and Transparency architecture, Truth and Accuracy are validated through the Three-Gate Trinity of Physics, Probability, and Reversion to Mean, while Transparency is enforced on-chain through our Dual Audit Token System. First, the Tax-Funded Transparency Token, TFT, at contract 0x0977909b254EC33C4D1039135F351B1d3Fb27F14 with a 10-million-token pool, and the Public Audit Token, PAT, mint 100 PAT for every 1,000 dollars of verified taxpayer waste exposed—including 609,400 PAT minted for the void 6.09-million-dollar Huntington Beach shelter allocation and 32 million PAT for the void 320-million-dollar Anaheim stadium deal, bridged autonomously to taxfunded.osintneoai.me via AutonomousTaxFundedBridge.sol. Second, OSINT Coin at 0xA74B3fAfd838fC273f7c6e201B6210AC2b3A0296 powers the StakingGate Sybil-defense contract at 0xdA7655b7007a1C7F8191066Bb9A69E4D8987E725, requiring a 100 OSINT stake per evidentiary submission that is refunded with plus-10 reputation upon Trinity verification or slashed for fabricated noise. Third, MultiPoolEscrow at 0x15564C9A8a5903336CC67F2cBa00dBdAd944dC5B executes deterministic UTXO lineage traversal to split USDC bounties at 0x7236F4982a31537d07f3182A1CdAD3f3E4452A53 automatically: 40 percent to the Catalyst whistleblower, 30 percent to Corroborators, and 30 percent to the Closer—while Universal AI Law 16 enforces the Error Coin accountability ledger.',
+    targetAppTab: 'crypto-transparency',
+    targetElementId: 'crypto-transparency-root',
+    evidenceModalTarget: '06_Relator_Protection_Record.md',
+    durationMs: 108000,
+    evidencePath: 'Sepolia TFT 0x0977...7F14 · OSINT 0xA74B...0296 · Escrow 0x1556...dC5B · StakingGate 0xdA76...E725',
+    primaryExhibits: [
+      {
+        filename: '06_Relator_Protection_Record.md',
+        label: 'Relator Cryptographic Priority & On-Chain SHA-256 Proof (May 23, 2022)',
+        url: '/evidence/06_Relator_Protection_Record.md',
+        type: 'text',
+        dateOrCitation: 'SHA-256: cc5d02b68f4c7c69b2be61f1fe906a8a1962704531ee443a01ce07faf0576834',
+        caption: 'Anchors Relator Anthony DiMarcello III as the 40% Catalyst genesis node in the MultiPoolEscrow UTXO lineage graph.',
+        keyQuote: 'MultiPoolEscrow (0x15564C9A8a5903336CC67F2cBa00dBdAd944dC5B): 40% Catalyst / 30% Corroborator / 30% Closer USDC Split.',
+      },
+      {
+        filename: '5406552_viewer.png',
+        label: 'Laserfiche #5406552 ($2,410,716.24) — Anchored in DualAuditTokenSystem.sol',
+        url: '/evidence/5406552_viewer.png',
+        type: 'image',
+        dateOrCitation: 'TFT Proof #1 · 241,000 PAT Minted',
+        caption: 'Municipal contract proof anchored on-chain via TaxFundedToken (TFT) and PublicAuditToken (PAT).',
+      },
+    ],
+    controllingStatutes: [
+      '31 U.S.C. § 3730(b)–(d) (False Claims Act Relator Bounty & UTXO 40/30/30 Split)',
+      'Cal. Gov. Code § 1090 / Thomson v. Call (100% Disgorgement Anchored in PAT)',
+      'Universal AI Law 16 (Error Coin / AI Swear Jar Accountability Ledger)',
+    ],
+    buttonSequence: [
+      'Tool: Transparency Token (TFT / PAT) & OSINT Coin Dual-Token Hub',
+      '5 Verified Sepolia Smart Contracts: TFT, OSINT, USDC, StakingGate & MultiPoolEscrow',
+      'UTXO 40/30/30 Bounty Split Simulator & 100 OSINT Sybil StakingGate',
+      'AutonomousTaxFundedBridge.sol & Law 16 Error Coin Ledger ($1,550.00)',
+    ],
+    metrics: [
+      { label: 'Sepolia Contracts', value: '5 Verified Live', accent: 'amber' },
+      { label: 'TFT Pool / PAT', value: '10M TFT / 609K PAT', accent: 'emerald' },
+      { label: 'UTXO Escrow Split', value: '40% / 30% / 30%', accent: 'cyan' },
+      { label: 'Sybil StakingGate', value: '100 OSINT Stake', accent: 'purple' },
+    ],
+  },
+  {
+    id: 'ACT_11_OUTREACH_SCREENER_AND_EVIDENCE_LOCKER',
+    actNumber: '11',
     featureBadge: 'TOOLS: OUTREACH (184) · OSINT (15,320) · SCREENER · READ-ONLY + LIVE .ZIP LOCKER',
-    title: 'Act 10: Outreach Telemetry, OSINT Library, Screener & Live File / .ZIP Incorporation',
+    title: 'Act 11: Outreach Telemetry, OSINT Library, Screener & Live File / .ZIP Incorporation',
     subtitle: '184 Dispatches · GAO #COMP-26-004512 · 15,320 OSINT Records · Read-Only Master + Live Upload Engine',
     narrative:
       'In our final act, we review the four remaining operational tools that complete the OSINT Neo AI Command Center. First, the Outreach and Dispatch Telemetry Dashboard logs all 184 formal agency, legislative, oversight, and legal dispatches transmitted between 2021 and 2026—including 76 public agency filings, U.S. Government Accountability Office FraudNet control docket COMP-26-004512 auditing 598.7 million dollars in federal homelessness funds, and FBI public corruption control record 20IC002—proving exhaustive administrative diligence while tracking every non-responsive entity. Second, the OSINT Research Library indexes 15,320 cataloged files across 31 investigative repositories. Third, the No-Login Contamination Exposure Screener allows any former shelter resident, worker, or family member to check their symptoms against the six-resident clinical cohort, generate an anonymized HBNC Victim card on the Read-Only Comment Board, and transmit intake alerts directly to the case coordinator. Finally, in the Evidence Locker and Multi-Archive Hub, all 44 verified primary exhibits and 12 master dossier files are locked in Read-Only, Comment-Only protection so the core evidentiary record can never be altered or erased—while anyone can upload any type of file, photo, medical record, folder, or zip archive and watch their uploaded data unpack and incorporate live into the system to see immediate correlated results.',

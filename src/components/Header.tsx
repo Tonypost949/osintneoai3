@@ -15,6 +15,7 @@ import {
   Layers,
   Zap,
   Lock,
+  Coins,
 } from 'lucide-react';
 import { AppViewportTab } from '../data/hbncDemoScript';
 
@@ -60,6 +61,14 @@ export const Header: React.FC<HeaderProps> = ({
           <span className="bg-red-950/80 text-red-300 border border-red-800/60 px-2 py-0.5 rounded text-[11px] font-mono">
             49× Cr(VI) &middot; 617 RICO Nodes
           </span>
+          <button
+            onClick={() => setActiveTab('crypto-transparency')}
+            className="bg-amber-950/90 hover:bg-amber-900 text-amber-300 border border-amber-500/60 px-2 py-0.5 rounded text-[11px] font-mono font-bold flex items-center gap-1 cursor-pointer transition-all"
+            title="Open Transparency Token (TFT / OSINT / PAT) & Ethereum Sepolia 40/30/30 Escrow"
+          >
+            <Coins className="w-3 h-3 text-amber-400" />
+            <span>⛓️ TFT / OSINT / PAT &middot; Sepolia 40/30/30</span>
+          </button>
         </div>
 
         {/* Global Action Buttons */}
@@ -181,6 +190,21 @@ export const Header: React.FC<HeaderProps> = ({
         >
           <Scale className="w-4 h-4 text-amber-400" />
           <span>Form 700 &amp; 2 Void Deals</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab('crypto-transparency')}
+          className={`flex items-center gap-2 px-3 py-2 rounded-t font-semibold text-xs transition-all whitespace-nowrap border-b-2 cursor-pointer ${
+            activeTab === 'crypto-transparency'
+              ? 'bg-amber-950/90 text-amber-300 border-amber-400 font-bold'
+              : 'text-amber-300 hover:text-white border-transparent hover:bg-amber-950/40'
+          }`}
+        >
+          <Coins className="w-4 h-4 text-amber-400" />
+          <span>Transparency Token &amp; Crypto</span>
+          <span className="bg-amber-500/20 text-amber-300 text-[10px] px-1.5 py-0.2 rounded font-mono font-bold">
+            TFT &middot; OSINT &middot; PAT
+          </span>
         </button>
 
         <button

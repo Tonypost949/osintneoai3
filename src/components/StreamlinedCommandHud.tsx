@@ -12,6 +12,7 @@ import {
   Layers,
   Gavel,
   Network,
+  Coins,
 } from 'lucide-react';
 import { AppViewportTab } from '../data/hbncDemoScript';
 import { playCyberChime } from '../utils/audioEngine';
@@ -250,6 +251,18 @@ export const StreamlinedCommandHud: React.FC<StreamlinedCommandHudProps> = ({
             >
               <Gavel className="w-3.5 h-3.5" />
               <span>2 Void Deals</span>
+            </button>
+
+            <button
+              onClick={() => onSwitchTab('crypto-transparency')}
+              className={`px-3 py-1.5 rounded flex items-center gap-1.5 font-bold transition-all cursor-pointer ${
+                activeTab === 'crypto-transparency'
+                  ? 'bg-amber-500 text-slate-950 shadow-lg shadow-amber-500/20'
+                  : 'bg-amber-950/80 border border-amber-500/50 text-amber-300 hover:bg-amber-900'
+              }`}
+            >
+              <Coins className="w-3.5 h-3.5" />
+              <span>⛓️ Transparency Token (TFT / OSINT / PAT)</span>
             </button>
           </div>
 
