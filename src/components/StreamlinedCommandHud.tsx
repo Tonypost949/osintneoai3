@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import {
-  AlertTriangle,
   Scale,
   Clock,
   Activity,
@@ -8,21 +7,18 @@ import {
   Shield,
   Zap,
   Volume2,
-  ChevronRight,
   Copy,
-  ExternalLink,
   Flame,
-  CheckCircle2,
   Layers,
-  ArrowRight,
-  Gavel
+  Gavel,
+  Network,
 } from 'lucide-react';
 import { AppViewportTab } from '../data/hbncDemoScript';
 import { playCyberChime } from '../utils/audioEngine';
 
 interface StreamlinedCommandHudProps {
-  activeTab: AppViewportTab | 'void-deals';
-  onSwitchTab: (tab: AppViewportTab | 'void-deals') => void;
+  activeTab: AppViewportTab;
+  onSwitchTab: (tab: AppViewportTab) => void;
   onCopySummary: () => void;
   onTestVoice: () => void;
   isStreamlinedMode: boolean;
@@ -60,7 +56,7 @@ export const StreamlinedCommandHud: React.FC<StreamlinedCommandHudProps> = ({
               <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-cyan-500"></span>
             </span>
             <span className="text-xs font-mono font-bold tracking-wider uppercase text-cyan-300">
-              FORENSIC COMMAND HUD // HBNC CASE 3
+              FORENSIC COMMAND HUD // HBNC CASE 3 &middot; 10-ACT STUDIO ENGINE
             </span>
             <span className="hidden sm:inline text-slate-600">&middot;</span>
             <span className="text-[11px] font-mono text-slate-400 hidden sm:inline">
@@ -89,11 +85,10 @@ export const StreamlinedCommandHud: React.FC<StreamlinedCommandHudProps> = ({
                 onTestVoice();
               }}
               className="px-2.5 py-1 rounded-full bg-emerald-950/80 hover:bg-emerald-900 border border-emerald-500/60 text-emerald-300 text-xs font-mono font-bold flex items-center gap-1 transition-all cursor-pointer"
-              title="Test Studio Voice Narration (Gemini Neural / Charon)"
+              title="Test Gemini 3.8 Flash Studio Neural Voice (Charon)"
             >
               <Volume2 className="w-3.5 h-3.5 text-emerald-400" />
-              <span>Studio Voice: Charon</span>
-
+              <span>Studio Neural Voice: Charon</span>
             </button>
           </div>
         </div>
@@ -115,7 +110,6 @@ export const StreamlinedCommandHud: React.FC<StreamlinedCommandHudProps> = ({
             <div className="text-lg font-black text-white group-hover:text-red-300">
               980 <span className="text-[10px] font-normal text-slate-400">µg/kg</span>
             </div>
-            {/* Visual meter bar */}
             <div className="w-full bg-slate-900 h-1.5 rounded-full overflow-hidden mt-1.5">
               <div className="bg-gradient-to-r from-amber-500 to-red-500 h-full w-[98%]" />
             </div>
@@ -136,7 +130,6 @@ export const StreamlinedCommandHud: React.FC<StreamlinedCommandHudProps> = ({
             <div className="text-lg font-black text-white group-hover:text-purple-300">
               $326.1M <span className="text-[10px] font-normal text-slate-400">Total</span>
             </div>
-            {/* Visual meter bar */}
             <div className="w-full bg-slate-900 h-1.5 rounded-full overflow-hidden mt-1.5">
               <div className="bg-gradient-to-r from-purple-500 to-cyan-500 h-full w-[100%]" />
             </div>
@@ -144,33 +137,27 @@ export const StreamlinedCommandHud: React.FC<StreamlinedCommandHudProps> = ({
 
           {/* Meter 3: Statutory Clock */}
           <div
-            onClick={() => onSwitchTab('ailaws')}
+            onClick={() => onSwitchTab('evidence-law-hybrid')}
             className="bg-slate-950/80 hover:bg-slate-950 border border-amber-500/50 hover:border-amber-400 p-2.5 rounded-lg transition-all cursor-pointer group"
           >
             <div className="flex items-center justify-between mb-1">
               <span className="text-[10px] text-amber-400 font-bold uppercase tracking-wider flex items-center gap-1">
                 <Clock className="w-3 h-3 text-amber-400" />
-                <span>Statutory Clock</span>
+                <span>Evidence + Law</span>
               </span>
-              <span className="text-[10px] bg-amber-950 text-amber-300 px-1.5 py-0.2 rounded font-bold">Gov § 911.2</span>
+              <span className="text-[10px] bg-amber-950 text-amber-300 px-1.5 py-0.2 rounded font-bold">Hybrid View</span>
             </div>
             <div className="text-lg font-black text-white group-hover:text-amber-300">
-              72 Hours <span className="text-[10px] font-normal text-slate-400">Notice</span>
+              44 Exhibits <span className="text-[10px] font-normal text-slate-400">Live</span>
             </div>
-            {/* Visual meter bar */}
             <div className="w-full bg-slate-900 h-1.5 rounded-full overflow-hidden mt-1.5">
-              <div className="bg-gradient-to-r from-amber-400 to-rose-500 h-full w-[85%]" />
+              <div className="bg-gradient-to-r from-amber-400 to-rose-500 h-full w-[92%]" />
             </div>
           </div>
 
           {/* Meter 4: Hospitalized Cluster */}
           <div
-            onClick={() => {
-              onSwitchTab('master');
-              setTimeout(() => {
-                document.getElementById('people-section')?.scrollIntoView({ behavior: 'smooth' });
-              }, 200);
-            }}
+            onClick={() => onOpenFileViewer('scripps_ehr_page_985.png')}
             className="bg-slate-950/80 hover:bg-slate-950 border border-blue-500/50 hover:border-blue-400 p-2.5 rounded-lg transition-all cursor-pointer group"
           >
             <div className="flex items-center justify-between mb-1">
@@ -183,30 +170,28 @@ export const StreamlinedCommandHud: React.FC<StreamlinedCommandHudProps> = ({
             <div className="text-lg font-black text-white group-hover:text-blue-300">
               6 Residents <span className="text-[10px] font-normal text-slate-400">62d ICU</span>
             </div>
-            {/* Visual meter bar */}
             <div className="w-full bg-slate-900 h-1.5 rounded-full overflow-hidden mt-1.5">
-              <div className="bg-gradient-to-r from-blue-400 to-indigo-500 h-full w-[75%]" />
+              <div className="bg-gradient-to-r from-blue-400 to-indigo-500 h-full w-[85%]" />
             </div>
           </div>
 
-          {/* Meter 5: Relator Outreaches */}
+          {/* Meter 5: Maltego Graph & Relator Outreaches */}
           <div
-            onClick={() => onSwitchTab('outreach')}
+            onClick={() => onSwitchTab('maltego')}
             className="bg-slate-950/80 hover:bg-slate-950 border border-emerald-500/50 hover:border-emerald-400 p-2.5 rounded-lg transition-all cursor-pointer group col-span-2 md:col-span-1"
           >
             <div className="flex items-center justify-between mb-1">
               <span className="text-[10px] text-emerald-400 font-bold uppercase tracking-wider flex items-center gap-1">
-                <FileCheck className="w-3 h-3 text-emerald-400" />
-                <span>Dispatches</span>
+                <Network className="w-3 h-3 text-emerald-400" />
+                <span>Maltego Graph</span>
               </span>
-              <span className="text-[10px] bg-emerald-950 text-emerald-300 px-1.5 py-0.2 rounded font-bold">184 Logged</span>
+              <span className="text-[10px] bg-emerald-950 text-emerald-300 px-1.5 py-0.2 rounded font-bold">HTML5 Canvas</span>
             </div>
             <div className="text-lg font-black text-white group-hover:text-emerald-300">
-              31 Repos <span className="text-[10px] font-normal text-slate-400">15.3k items</span>
+              15 Nodes <span className="text-[10px] font-normal text-slate-400">18 Links</span>
             </div>
-            {/* Visual meter bar */}
             <div className="w-full bg-slate-900 h-1.5 rounded-full overflow-hidden mt-1.5">
-              <div className="bg-gradient-to-r from-emerald-500 to-teal-400 h-full w-[90%]" />
+              <div className="bg-gradient-to-r from-emerald-500 to-teal-400 h-full w-[95%]" />
             </div>
           </div>
         </div>
@@ -224,15 +209,39 @@ export const StreamlinedCommandHud: React.FC<StreamlinedCommandHudProps> = ({
             </button>
 
             <button
-              onClick={() => onSwitchTab('ailaws')}
+              onClick={() => onSwitchTab('evidence-law-hybrid')}
               className={`px-3 py-1.5 rounded flex items-center gap-1.5 font-bold transition-all cursor-pointer ${
-                activeTab === 'ailaws'
+                activeTab === 'evidence-law-hybrid'
                   ? 'bg-cyan-600 text-white'
                   : 'bg-slate-800 text-cyan-300 hover:bg-slate-700'
               }`}
             >
+              <Layers className="w-3.5 h-3.5" />
+              <span>Evidence-Law Hybrid Viewer</span>
+            </button>
+
+            <button
+              onClick={() => onSwitchTab('maltego')}
+              className={`px-3 py-1.5 rounded flex items-center gap-1.5 font-bold transition-all cursor-pointer ${
+                activeTab === 'maltego'
+                  ? 'bg-emerald-600 text-white'
+                  : 'bg-slate-800 text-emerald-300 hover:bg-slate-700'
+              }`}
+            >
+              <Network className="w-3.5 h-3.5" />
+              <span>Canvas Maltego Graph</span>
+            </button>
+
+            <button
+              onClick={() => onSwitchTab('ailaws')}
+              className={`px-3 py-1.5 rounded flex items-center gap-1.5 font-bold transition-all cursor-pointer ${
+                activeTab === 'ailaws'
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-slate-800 text-blue-300 hover:bg-slate-700'
+              }`}
+            >
               <Scale className="w-3.5 h-3.5" />
-              <span>/ailaws Legal Matrix</span>
+              <span>/ailaws Matrix</span>
             </button>
 
             <button
@@ -244,19 +253,7 @@ export const StreamlinedCommandHud: React.FC<StreamlinedCommandHudProps> = ({
               }`}
             >
               <Gavel className="w-3.5 h-3.5" />
-              <span>Compare 2 Void Deals</span>
-            </button>
-
-            <button
-              onClick={() => onSwitchTab('screener')}
-              className={`px-3 py-1.5 rounded flex items-center gap-1.5 font-bold transition-all cursor-pointer ${
-                activeTab === 'screener'
-                  ? 'bg-emerald-600 text-white'
-                  : 'bg-slate-800 text-emerald-300 hover:bg-slate-700'
-              }`}
-            >
-              <Shield className="w-3.5 h-3.5" />
-              <span>Upload Record (.zip / any)</span>
+              <span>2 Void Deals</span>
             </button>
           </div>
 
@@ -268,6 +265,13 @@ export const StreamlinedCommandHud: React.FC<StreamlinedCommandHudProps> = ({
               className="text-cyan-400 hover:underline cursor-pointer"
             >
               County Condition
+            </button>
+            <span>&middot;</span>
+            <button
+              onClick={() => onOpenFileViewer('5406552_viewer.png')}
+              className="text-purple-400 hover:underline cursor-pointer"
+            >
+              1-Yr Cap Contract
             </button>
             <span>&middot;</span>
             <button

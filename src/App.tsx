@@ -8,6 +8,8 @@ import { VoidAbInitioDealsView } from './components/VoidAbInitioDealsView';
 import { OutreachDashboardView } from './components/OutreachDashboardView';
 import { OsintLibraryView } from './components/OsintLibraryView';
 import { EvidenceLockerView } from './components/EvidenceLockerView';
+import { MaltegoGraphView } from './components/MaltegoGraphView';
+import { EvidenceLawHybridView } from './components/EvidenceLawHybridView';
 import { CinematicDemoOverlay } from './components/CinematicDemoOverlay';
 import { FileViewerModal } from './components/FileViewerModal';
 import { AiAssistantModal } from './components/AiAssistantModal';
@@ -15,24 +17,29 @@ import { StreamlinedCommandHud } from './components/StreamlinedCommandHud';
 import { LeftSideCommandMenu } from './components/LeftSideCommandMenu';
 import { IntegrationsHubView } from './components/IntegrationsHubView';
 import { CINEMATIC_DEMO_SCENES, AppViewportTab } from './data/hbncDemoScript';
-import { StudioVoicePersona, playCyberChime, normalizeTextForSpeech, getBestVoiceForPersona, fetchGeminiNeuralAudio } from './utils/audioEngine';
-import { Scale, ShieldAlert, UserCheck, BarChart3, Database, FolderOpen, Gavel, Menu, Eye, EyeOff, Sparkles, KeyRound, Maximize2 } from 'lucide-react';
+import {
+  StudioVoicePersona,
+  playCyberChime,
+  normalizeTextForSpeech,
+  getBestVoiceForPersona,
+  fetchGeminiNeuralAudio,
+} from './utils/audioEngine';
+import { Gavel, Layers, Network, Menu, Zap, Lock, Upload } from 'lucide-react';
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState<AppViewportTab | 'void-deals'>('master');
+  const [activeTab, setActiveTab] = useState<AppViewportTab>('evidence-law-hybrid');
   const [selectedFileForModal, setSelectedFileForModal] = useState<string | null>(null);
   const [selectedFileDataForModal, setSelectedFileDataForModal] = useState<string | null>(null);
   const [isAiModalOpen, setIsAiModalOpen] = useState(false);
   const [isStreamlinedMode, setIsStreamlinedMode] = useState(true);
 
-  // Left Side Menu & Dock Auto-Hide State
+  // Left Side Command Menu & AI Model State
   const [isLeftMenuOpen, setIsLeftMenuOpen] = useState<boolean>(false);
-  const [dockDisplayMode, setDockDisplayMode] = useState<'autohide' | 'always' | 'hidden'>('autohide');
-  const [isMouseNearTop, setIsMouseNearTop] = useState<boolean>(false);
+  const [dockDisplayMode, setDockDisplayMode] = useState<'autohide' | 'always' | 'hidden'>('always');
   const [selectedAiModel, setSelectedAiModel] = useState<string>('gemini-4-argon');
   const [selectedVoice, setSelectedVoice] = useState<StudioVoicePersona>('Charon');
 
-  // Cinematic Demo State matching reference app
+  // 10-Act Cinematic Demo State with Live Primary Evidence Stage
   const [isCinematicDemoActive, setIsCinematicDemoActive] = useState<boolean>(true);
   const [currentDemoSceneIdx, setCurrentDemoSceneIdx] = useState<number>(0);
   const [isDemoPlaying, setIsDemoPlaying] = useState<boolean>(true);
@@ -46,33 +53,13 @@ export default function App() {
   const sceneStartTimestampRef = useRef<number>(Date.now());
   const folderInputRef = useRef<HTMLInputElement | null>(null);
 
-  // Fullscreen change listener to sync React state on ESC
+  // Sync browser fullscreenchange events (e.g. if user presses Escape) with `isFullScreenCinema`
   useEffect(() => {
     const handleFsChange = () => {
       setIsFullScreenCinema(Boolean(document.fullscreenElement));
     };
     document.addEventListener('fullscreenchange', handleFsChange);
     return () => document.removeEventListener('fullscreenchange', handleFsChange);
-  }, []);
-
-  // Track mouse proximity to top of window for smooth auto-hide dock reveal
-  useEffect(() => {
-    let hideTimer: number;
-    const handleMouseMove = (e: MouseEvent) => {
-      if (e.clientY < 75) {
-        window.clearTimeout(hideTimer);
-        setIsMouseNearTop(true);
-      } else if (e.clientY > 180) {
-        hideTimer = window.setTimeout(() => {
-          setIsMouseNearTop(false);
-        }, 300);
-      }
-    };
-    window.addEventListener('mousemove', handleMouseMove);
-    return () => {
-      window.removeEventListener('mousemove', handleMouseMove);
-      window.clearTimeout(hideTimer);
-    };
   }, []);
 
   // When demo scene changes, switch active viewport tab smoothly
@@ -103,8 +90,8 @@ export default function App() {
   useEffect(() => {
     if (!isCinematicDemoActive || !isDemoPlaying) return;
     const scene = CINEMATIC_DEMO_SCENES[currentDemoSceneIdx];
-    const totalMs = (scene?.durationMs || 46000) / demoPlaybackSpeed;
-    const minRequiredMs = Math.max(30000, totalMs * 0.85);
+    const totalMs = (scene?.durationMs || 95000) / demoPlaybackSpeed;
+    const minRequiredMs = Math.max(45000, totalMs * 0.85);
     const tickMs = 200;
     const increment = (tickMs / totalMs) * 100;
 
@@ -141,12 +128,16 @@ export default function App() {
 
   const handleToggleFullScreen = () => {
     try {
-      if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
+      if (!isFullScreenCinema) {
         setIsFullScreenCinema(true);
-        document.documentElement.requestFullscreen().catch(() => {});
-      } else if (document.fullscreenElement && document.exitFullscreen) {
+        if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
+          document.documentElement.requestFullscreen().catch(() => {});
+        }
+      } else {
         setIsFullScreenCinema(false);
-        document.exitFullscreen().catch(() => {});
+        if (document.fullscreenElement && document.exitFullscreen) {
+          document.exitFullscreen().catch(() => {});
+        }
       }
     } catch {
       setIsFullScreenCinema((prev) => !prev);
@@ -155,8 +146,8 @@ export default function App() {
 
   const handleCopySummary = () => {
     const summary = [
-      'URGENT INTAKE / CASE EVALUATION REQUEST — HBNC CASE 3',
-      'Parties: Elizabeth Tina Petruccio (DOB 07/29/1964, disabled resident) & Anthony Michael DiMarcello III (DOB 05/04/1983, caregiver)',
+      'URGENT INTAKE / CASE EVALUATION REQUEST — HBNC CASE 3 (OSINT NEO AI & LEGAL MATRIX)',
+      'Parties: Elizabeth Tina Petruccio (DOB 07/29/1964, 62-year-old disabled mother & shelter resident) & Anthony Michael DiMarcello III (DOB 05/04/1983, son, caregiver & federal relator)',
       'Contact: amd949609@gmail.com',
       'Site: Huntington Beach Navigation Center, 17631 Cameron Lane, Huntington Beach, CA 92648 (Operator: Mercy House Living Centers)',
       'Related Federal Action: Knabb v. City of Huntington Beach et al., No. 8:26-cv-00348-JWH-ADS (C.D. Cal.), SAVC ECF 115 / Opp. MTD ECF 130',
@@ -177,10 +168,11 @@ export default function App() {
 
   const handleTestStudioVoice = async () => {
     playCyberChime(0.85);
-    const testText = "This is Charon from Gemini Studio Voice. All seven evidentiary acts, Hexavalent Chromium levels at 49 times screening standards, and the two void ab initio public land deals are loaded and ready for judicial review.";
+    const testText =
+      'OSINT Neo AI, Live Investigation and Legal Matrix. 17631 Cameron Lane soil tested at 980 micrograms per kilogram of Hexavalent Chromium, 49 times the state residential screening limit. Elizabeth Petruccio and relator Anthony DiMarcello’s primary hospital and contract records are loaded on screen.';
 
     try {
-      const audioUrl = await fetchGeminiNeuralAudio(testText, 'Charon');
+      const audioUrl = await fetchGeminiNeuralAudio(testText, selectedVoice);
       if (audioUrl) {
         const audio = new Audio(audioUrl);
         await audio.play();
@@ -193,16 +185,15 @@ export default function App() {
     if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
       window.speechSynthesis.cancel();
       const voices = window.speechSynthesis.getVoices();
-      const voice = getBestVoiceForPersona('Charon', voices);
+      const voice = getBestVoiceForPersona(selectedVoice, voices);
       const text = normalizeTextForSpeech(testText);
       const utt = new SpeechSynthesisUtterance(text);
       if (voice) utt.voice = voice;
-      utt.pitch = 0.90;
-      utt.rate = 0.92;
+      utt.pitch = 0.92;
+      utt.rate = 0.95;
       window.speechSynthesis.speak(utt);
     }
   };
-
 
   const handleOpenFileViewer = (filename: string, fileData?: string) => {
     setSelectedFileForModal(filename);
@@ -211,10 +202,9 @@ export default function App() {
 
   const handleRoleSelection = (role: 'counsel' | 'agency' | 'physician' | 'public') => {
     if (role === 'counsel') {
-      setActiveTab('ailaws');
+      setActiveTab('evidence-law-hybrid');
     } else if (role === 'agency') {
-      setActiveTab('master');
-      document.getElementById('site-section')?.scrollIntoView({ behavior: 'smooth' });
+      setActiveTab('maltego');
     } else if (role === 'physician') {
       setActiveTab('master');
       document.getElementById('people-section')?.scrollIntoView({ behavior: 'smooth' });
@@ -222,6 +212,9 @@ export default function App() {
       setActiveTab('screener');
     }
   };
+
+  // Hide top navigation bars and side menu button during Fullscreen Demo Mode so only the data & evidence stage are presented
+  const hideTopBarsInFullscreenDemo = isCinematicDemoActive && isFullScreenCinema;
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans select-text relative">
@@ -234,18 +227,18 @@ export default function App() {
         className="hidden"
         onChange={(e) => {
           if (e.target.files && e.target.files.length > 0) {
-            alert(`Selected ${e.target.files.length} files from folder. View them in the Evidence Locker tab!`);
+            alert(`Live-incorporated ${e.target.files.length} files into the system! Opening the Evidence Locker tab.`);
             setActiveTab('locker');
           }
         }}
       />
 
-      {/* Left Side Command Menu Trigger Button (Unobtrusive floating tab on left edge) */}
-      {!isFullScreenCinema && (
+      {/* Left Side Command Menu Trigger Button (Hidden during Fullscreen Demo Mode) */}
+      {!hideTopBarsInFullscreenDemo && (
         <button
           onClick={() => setIsLeftMenuOpen(true)}
           className="fixed left-0 top-1/2 -translate-y-1/2 z-40 bg-slate-950/95 hover:bg-slate-900 border-y border-r border-cyan-500/60 text-cyan-300 hover:text-white px-2 py-3.5 rounded-r-xl shadow-2xl backdrop-blur-xl flex flex-col items-center gap-2 transition-all cursor-pointer group ring-1 ring-cyan-500/30"
-          title="Open Command Menu (Argon 4 &amp; Views)"
+          title="Open Command Menu (Argon 4, All Tools & Views)"
         >
           <Menu className="w-4 h-4 text-cyan-400 group-hover:scale-110 transition-transform" />
           <span className="[writing-mode:vertical-lr] rotate-180 text-[10px] font-mono font-bold tracking-widest text-cyan-300">
@@ -254,60 +247,11 @@ export default function App() {
         </button>
       )}
 
-      {/* Floating Quick Dock Controller & Argon 4 Status Chip at Top */}
-      {!isFullScreenCinema && (
-        <div className="fixed top-2 left-1/2 -translate-x-1/2 z-40 flex items-center gap-2">
-          <button
-            onClick={() => {
-              playCyberChime(1.1);
-              setDockDisplayMode((prev) =>
-                prev === 'autohide' ? 'always' : prev === 'always' ? 'hidden' : 'autohide'
-              );
-            }}
-            className="px-2.5 py-1 rounded-full bg-slate-950/90 hover:bg-slate-900 border border-slate-700/80 text-slate-300 hover:text-white text-[10px] font-mono backdrop-blur-md shadow-xl flex items-center gap-1.5 transition-all cursor-pointer opacity-75 hover:opacity-100"
-            title="Cycle Dock Display Mode: Auto-Hide (Hover Top) / Always Shown / Hidden"
-          >
-            {dockDisplayMode === 'autohide' ? (
-              <>
-                <Eye className="w-3 h-3 text-amber-400" />
-                <span>Docks: Auto-Hide (Hover Top)</span>
-              </>
-            ) : dockDisplayMode === 'always' ? (
-              <>
-                <Eye className="w-3 h-3 text-emerald-400" />
-                <span>Docks: Always Shown</span>
-              </>
-            ) : (
-              <>
-                <EyeOff className="w-3 h-3 text-red-400" />
-                <span>Docks: Hidden (Max Room)</span>
-              </>
-            )}
-          </button>
-
-          <button
-            onClick={() => setIsAiModalOpen(true)}
-            className="px-2.5 py-1 rounded-full bg-indigo-950/90 hover:bg-indigo-900 border border-indigo-500/60 text-indigo-300 hover:text-white text-[10px] font-mono backdrop-blur-md shadow-xl flex items-center gap-1.5 transition-all cursor-pointer"
-            title="Gemini 4 Argon &amp; User Profile API Keys Active · Click for AI Assistant"
-          >
-            <Sparkles className="w-3 h-3 text-indigo-400 animate-pulse" />
-            <span>⚡ Argon 4 &middot; Keys Active</span>
-          </button>
-        </div>
-      )}
-
-      {/* Top Docks Container: Fades and slides out of view unless mouse is near top, or toggled */}
-      {!isFullScreenCinema && dockDisplayMode !== 'hidden' && (
-        <div
-          className={`sticky top-0 z-30 transition-all duration-300 ease-out transform ${
-            dockDisplayMode === 'always' || isMouseNearTop
-              ? 'opacity-100 translate-y-0 pointer-events-auto shadow-2xl'
-              : 'opacity-0 -translate-y-full pointer-events-none'
-          }`}
-        >
-          {/* Sticky Header with Navigation Tabs */}
+      {/* Top Menus: Hidden automatically during Fullscreen Demo Mode */}
+      {!hideTopBarsInFullscreenDemo && dockDisplayMode !== 'hidden' && (
+        <>
           <Header
-            activeTab={activeTab === 'void-deals' ? 'master' : activeTab}
+            activeTab={activeTab}
             setActiveTab={(t) => setActiveTab(t)}
             onOpenFolderScanner={() => folderInputRef.current?.click()}
             onCopySummary={handleCopySummary}
@@ -316,7 +260,6 @@ export default function App() {
             onOpenAiAssistant={() => setIsAiModalOpen(true)}
           />
 
-          {/* Interactive Streamlined Command HUD */}
           <StreamlinedCommandHud
             activeTab={activeTab}
             onSwitchTab={(t) => setActiveTab(t)}
@@ -327,42 +270,93 @@ export default function App() {
             onOpenFileViewer={handleOpenFileViewer}
           />
 
-          {/* Sub-bar with Void Ab Initio Deals Tab button */}
-          <div className="bg-slate-900/90 border-b border-slate-800 px-4 py-1.5 flex items-center justify-between text-xs font-mono">
-            <div className="flex items-center gap-3 overflow-x-auto">
-              <span className="text-slate-500 hidden sm:inline">QUICK CORES:</span>
+          {/* Forensic Workspaces & Read-Only / Live Upload Architecture Sub-Bar */}
+          <div className="bg-slate-900/95 border-b border-slate-800 px-4 py-1.5 flex flex-wrap items-center justify-between gap-2 text-xs font-mono">
+            <div className="flex items-center gap-2 overflow-x-auto">
+              <span className="text-slate-500 hidden sm:inline">FORENSIC TOOLS:</span>
+              <button
+                onClick={() => setActiveTab('evidence-law-hybrid')}
+                className={`flex items-center gap-1.5 px-2.5 py-1 rounded font-bold transition-all whitespace-nowrap cursor-pointer ${
+                  activeTab === 'evidence-law-hybrid'
+                    ? 'bg-cyan-900 text-cyan-200 border border-cyan-400'
+                    : 'text-cyan-400 hover:text-cyan-300 hover:bg-slate-800'
+                }`}
+              >
+                <Layers className="w-3.5 h-3.5" />
+                <span>Evidence-Law Hybrid Viewer</span>
+              </button>
+
+              <button
+                onClick={() => setActiveTab('maltego')}
+                className={`flex items-center gap-1.5 px-2.5 py-1 rounded font-bold transition-all whitespace-nowrap cursor-pointer ${
+                  activeTab === 'maltego'
+                    ? 'bg-emerald-900 text-emerald-200 border border-emerald-400'
+                    : 'text-emerald-400 hover:text-emerald-300 hover:bg-slate-800'
+                }`}
+              >
+                <Network className="w-3.5 h-3.5" />
+                <span>Interactive Canvas Maltego Graph</span>
+              </button>
+
               <button
                 onClick={() => setActiveTab('void-deals')}
-                className={`flex items-center gap-1.5 px-2.5 py-1 rounded font-bold transition-all whitespace-nowrap ${
+                className={`flex items-center gap-1.5 px-2.5 py-1 rounded font-bold transition-all whitespace-nowrap cursor-pointer ${
                   activeTab === 'void-deals'
                     ? 'bg-purple-900 text-purple-200 border border-purple-500'
                     : 'text-purple-400 hover:text-purple-300 hover:bg-slate-800'
                 }`}
               >
                 <Gavel className="w-3.5 h-3.5" />
-                <span>Form 700 &amp; 2 Void Ab Initio Deals ($320M vs $6.09M)</span>
+                <span>Form 700 &amp; 2 Void Deals ($320M vs $6.09M)</span>
               </button>
 
-              <a
-                href="/ailaws.html"
-                target="_blank"
-                className="text-blue-400 hover:underline flex items-center gap-1"
+              <button
+                onClick={() => setActiveTab('integrations')}
+                className={`flex items-center gap-1.5 px-2.5 py-1 rounded font-bold transition-all whitespace-nowrap cursor-pointer ${
+                  activeTab === 'integrations'
+                    ? 'bg-indigo-900 text-indigo-200 border border-indigo-400'
+                    : 'text-indigo-400 hover:text-indigo-300 hover:bg-slate-800'
+                }`}
               >
-                <span>Open Standalone /ailaws.html</span>
-              </a>
+                <Zap className="w-3.5 h-3.5" />
+                <span>3D Subsurface Plume &amp; GIS Hub</span>
+              </button>
             </div>
 
-            <div className="text-[11px] text-slate-400 hidden md:block">
-              Case Contact: <a href="mailto:amd949609@gmail.com" className="text-emerald-400 hover:underline">amd949609@gmail.com</a>
+            <div className="flex items-center gap-2 text-[11px]">
+              <span className="hidden lg:inline-flex items-center gap-1 bg-emerald-950/90 border border-emerald-500/50 text-emerald-300 px-2 py-0.5 rounded font-bold">
+                <Lock className="w-3 h-3 text-emerald-400" />
+                <span>READ-ONLY / COMMENT-ONLY MASTER</span>
+              </span>
+              <button
+                onClick={() => setActiveTab('locker')}
+                className="inline-flex items-center gap-1 bg-amber-950/90 hover:bg-amber-900 border border-amber-500/60 text-amber-300 px-2 py-0.5 rounded font-bold cursor-pointer"
+                title="Upload any file, folder, or .ZIP archive to incorporate live into the system"
+              >
+                <Upload className="w-3 h-3 text-amber-400" />
+                <span>Live Upload Any File / .ZIP</span>
+              </button>
             </div>
           </div>
-        </div>
+        </>
       )}
 
       {/* Main Content Area */}
-      <main className={`flex-1 ${isFullScreenCinema ? 'pb-6' : 'pb-24'}`}>
+      <main className={`flex-1 ${hideTopBarsInFullscreenDemo ? 'pb-4 pt-2' : 'pb-28'}`}>
+        {activeTab === 'evidence-law-hybrid' && (
+          <EvidenceLawHybridView
+            onOpenFileInViewer={handleOpenFileViewer}
+            onSwitchToMaltego={() => setActiveTab('maltego')}
+            onSwitchToAilaws={() => setActiveTab('ailaws')}
+          />
+        )}
+
+        {activeTab === 'maltego' && (
+          <MaltegoGraphView onOpenFileInViewer={handleOpenFileViewer} />
+        )}
+
         {activeTab === 'master' && (
-          <div className="max-w-6xl mx-auto px-4 py-6">
+          <div id="master-record-root" className="max-w-6xl mx-auto px-4 py-6">
             <CallToActionHero
               onSelectRole={handleRoleSelection}
               onOpenActionEmail={() => setActiveTab('screener')}
@@ -376,7 +370,6 @@ export default function App() {
             />
           </div>
         )}
-
 
         {activeTab === 'ailaws' && (
           <AilawsMatrixView onOpenFileInViewer={handleOpenFileViewer} />
@@ -410,19 +403,19 @@ export default function App() {
         )}
       </main>
 
-      {/* Footer (hidden in fullscreen) */}
-      {!isFullScreenCinema && (
+      {/* Footer: Hidden automatically during Fullscreen Demo Mode */}
+      {!hideTopBarsInFullscreenDemo && (
         <footer className="bg-slate-950 border-t border-slate-800 text-xs text-slate-500 p-6 text-center font-mono">
           <p className="mb-1 text-slate-400">
-            <b>HBNC Case 3 &middot; OSINT Neo AI Command Center &middot; /ailaws Matrix &middot; Outreach Dashboard</b>
+            <b>OSINT Neo AI &middot; Live Investigation &amp; Legal Matrix &middot; HBNC Case 3 &middot; Read-Only Master + Live .ZIP Incorporation</b>
           </p>
           <p>
-            Prepared by Anthony Michael DiMarcello III and Elizabeth Tina Petruccio &middot; Party-Prepared Evidentiary Archive &middot; amd949609@gmail.com
+            Prepared by Relator Anthony Michael DiMarcello III and Elizabeth Tina Petruccio &middot; GAO #COMP-26-004512 &middot; FBI #20IC002 &middot; amd949609@gmail.com
           </p>
         </footer>
       )}
 
-      {/* Left Side Command Menu Drawer (Does not obstruct main dashboard) */}
+      {/* Left Side Command Menu Drawer */}
       <LeftSideCommandMenu
         isOpen={isLeftMenuOpen}
         onClose={() => setIsLeftMenuOpen(false)}
@@ -450,7 +443,7 @@ export default function App() {
         onCopySummary={handleCopySummary}
       />
 
-      {/* Cinematic Demo Overlay */}
+      {/* 10-Act Cinematic Demo Overlay with Synchronized Live Evidence Stage */}
       <CinematicDemoOverlay
         isActive={isCinematicDemoActive}
         onExitDemo={() => setIsCinematicDemoActive(false)}
@@ -464,7 +457,7 @@ export default function App() {
         playbackSpeed={demoPlaybackSpeed}
         onChangeSpeed={setDemoPlaybackSpeed}
         sceneProgress={demoSceneProgress}
-        activeAppTab={activeTab === 'void-deals' ? 'master' : activeTab}
+        activeAppTab={activeTab}
         onSwitchAppTab={(tab) => setActiveTab(tab)}
         isFullScreenCinema={isFullScreenCinema}
         onToggleFullScreenCinema={handleToggleFullScreen}
@@ -475,7 +468,7 @@ export default function App() {
         }}
         fontScale={fontScale}
         onChangeFontScale={setFontScale}
-        onOpenFileViewer={handleOpenFileViewer}
+        onOpenFileInViewer={handleOpenFileViewer}
       />
 
       {/* Modals */}

@@ -24,7 +24,8 @@ import {
   Eye,
   EyeOff,
   Cpu,
-  Bot
+  Bot,
+  Network,
 } from 'lucide-react';
 import { AppViewportTab, CINEMATIC_DEMO_SCENES } from '../data/hbncDemoScript';
 import { StudioVoicePersona, STUDIO_PERSONAS, playCyberChime } from '../utils/audioEngine';
@@ -84,14 +85,16 @@ export const LeftSideCommandMenu: React.FC<LeftSideCommandMenuProps> = ({
   const [autoHideOnLeave, setAutoHideOnLeave] = useState<boolean>(true);
 
   const tabs = [
+    { id: 'evidence-law-hybrid', label: 'Evidence-Law Hybrid Viewer', icon: Layers, badge: 'Split Exhibit/Law' },
+    { id: 'maltego', label: 'Canvas Maltego Entity Graph', icon: Network, badge: '15 Nodes / 18 Links' },
     { id: 'master', label: 'Master Record & Timeline', icon: ShieldAlert, badge: '49× Cr(VI)' },
     { id: 'void-deals', label: 'Form 700 & 2 Void Deals', icon: Gavel, badge: '$326M Disgorgement' },
     { id: 'ailaws', label: '/ailaws Statutory Proof Matrix', icon: Scale, badge: 'ADA & RCRA' },
     { id: 'screener', label: 'Victim Screener & Uploads', icon: UserCheck, badge: 'HBNC Victim #' },
-    { id: 'integrations', label: 'Integrations & Studio Secrets', icon: Zap, badge: '6 Cores Live' },
+    { id: 'integrations', label: '3D Plume, GIS & Studio Secrets', icon: Zap, badge: '6 Cores Live' },
     { id: 'outreach', label: 'Outreach Telemetry', icon: BarChart3, badge: 'GAO & FBI Dockets' },
-    { id: 'osint', label: 'OSINT Research Library', icon: Database, badge: '3,344 Files / 31 Repos' },
-    { id: 'locker', label: 'Evidence Locker Vault', icon: FolderOpen, badge: 'Exhibit Index' },
+    { id: 'osint', label: 'OSINT Research Library', icon: Database, badge: '15,320 Files / 31 Repos' },
+    { id: 'locker', label: 'Evidence Locker (Read-Only + ZIP)', icon: FolderOpen, badge: '44 Exhibits' },
   ] as const;
 
   const currentScene = CINEMATIC_DEMO_SCENES[currentDemoSceneIdx] || CINEMATIC_DEMO_SCENES[0];
@@ -303,7 +306,7 @@ export const LeftSideCommandMenu: React.FC<LeftSideCommandMenuProps> = ({
                 <Volume2 className="w-3.5 h-3.5 text-cyan-400" />
                 <span>CINEMATIC TOUR &amp; STUDIO VOICES</span>
               </span>
-              <span className="text-[10px] text-slate-400 font-mono">Act {currentScene.actNumber}/09</span>
+              <span className="text-[10px] text-slate-400 font-mono">Act {currentScene.actNumber}/{CINEMATIC_DEMO_SCENES.length}</span>
             </div>
 
             {/* Act Selector */}

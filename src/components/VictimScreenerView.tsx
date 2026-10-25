@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { UserCheck, Upload, AlertCircle, Send, CheckCircle2, Trash2, MessageSquare, Mail, ShieldCheck, HeartPulse, FileText, Lock, Gavel, FolderOpen } from 'lucide-react';
+import { UserCheck, Upload, Send, CheckCircle2, Trash2, MessageSquare, Mail, ShieldCheck, HeartPulse, FileText, Lock, Gavel, FolderOpen } from 'lucide-react';
 import {
   KNOWN_TOXIC_SYMPTOMS,
   calculateExposureRisk,
@@ -178,31 +178,31 @@ export const VictimScreenerView: React.FC = () => {
           <div className="flex items-center gap-2">
             <UserCheck className="w-6 h-6 text-emerald-400" />
             <h2 className="text-2xl font-extrabold text-white">
-              Contamination Exposure Screener &amp; Direct Record Upload
+              Contamination Exposure Screener &amp; Live Record / .ZIP Incorporation
             </h2>
           </div>
           <div className="flex items-center gap-2 bg-emerald-950/80 border border-emerald-700/60 px-3 py-1 rounded text-xs font-mono text-emerald-300">
             <Lock className="w-3.5 h-3.5" />
-            <span>NO LOGIN REQUIRED &middot; READ-ONLY OR SINGLE-FILE UPLOAD</span>
+            <span>READ-ONLY / COMMENT-ONLY MASTER &middot; LIVE ANY-FILE / .ZIP UPLOAD</span>
           </div>
         </div>
 
         <p className="text-slate-300 text-sm sm:text-base leading-relaxed mb-4 font-serif">
-          If you or a family member stayed or worked at the <b>Huntington Beach Navigation Center (17631 Cameron Lane)</b> and suffered severe pneumonia, pleural empyema, sudden weight loss, cardiac injury, or hospital discharge lockouts, check your symptoms below. You can upload a single medical record or photo and submit your statement directly to the case coordinator (<span className="text-emerald-300 font-mono font-semibold">amd949609@gmail.com</span>).
+          If you or a family member stayed or worked at the <b>Huntington Beach Navigation Center (17631 Cameron Lane)</b> and suffered severe pneumonia, pleural empyema, sudden weight loss, cardiac injury, or hospital discharge lockouts, check your symptoms below. While the master evidentiary archive is protected in <b>Read-Only / Comment-Only</b> mode, anyone can upload <b>any type of file, photo, medical PDF, or <code>.zip</code> archive</b> below—and your submission is <b>live-incorporated</b> into the system’s anonymized Victim Matrix and correlated against the 49&times; Cr(VI) plume and Form 700 Void Ab Initio land deals.
         </p>
 
         <div className="flex flex-wrap gap-3 text-xs text-slate-400">
           <span className="flex items-center gap-1.5 bg-slate-950 px-2.5 py-1 rounded border border-slate-800">
             <ShieldCheck className="w-4 h-4 text-emerald-400" />
-            Direct Email Transmission to Anthony DiMarcello III
+            Direct Email Transmission to Relator Anthony DiMarcello III
           </span>
           <span className="flex items-center gap-1.5 bg-slate-950 px-2.5 py-1 rounded border border-slate-800">
             <MessageSquare className="w-4 h-4 text-blue-400" />
-            Moderated Community Testimony Board
+            Read-Only / Comment-Only Anonymized Victim Board
           </span>
           <span className="flex items-center gap-1.5 bg-slate-950 px-2.5 py-1 rounded border border-slate-800">
             <HeartPulse className="w-4 h-4 text-red-400" />
-            Matched Against 6 Documented Resident Cases
+            Live Correlation With 6 Documented Resident Cases
           </span>
         </div>
       </div>
@@ -345,10 +345,10 @@ export const VictimScreenerView: React.FC = () => {
 
         {/* Step 3: Record Upload */}
         <h3 className="text-lg font-bold text-white mb-2 flex items-center gap-2 border-b border-slate-800 pb-2">
-          <span>Step 3: Upload Evidence File or .ZIP Archive (Optional)</span>
+          <span>Step 3: Upload Any Evidence File or .ZIP Archive (Live System Incorporation)</span>
         </h3>
         <p className="text-xs text-slate-400 mb-3">
-          Upload <b>any file type</b> (.ZIP archive, medical PDF, discharge summary, CT scan, blood lab, or photo).
+          Upload <b>any file type</b> (.ZIP archive, medical PDF, discharge summary, CT scan, blood lab, or photo) to incorporate live into the system.
         </p>
 
         <div className="mb-6">
@@ -375,7 +375,7 @@ export const VictimScreenerView: React.FC = () => {
           ) : (
             <label className="flex flex-col items-center justify-center p-6 border-2 border-dashed border-slate-700 hover:border-emerald-500 rounded-lg cursor-pointer bg-slate-950/60 transition-all">
               <Upload className="w-8 h-8 text-slate-400 mb-2" />
-              <span className="text-xs font-semibold text-slate-300">Click to attach file or .ZIP archive</span>
+              <span className="text-xs font-semibold text-slate-300">Click to attach any file or .ZIP archive for live incorporation</span>
               <span className="text-[11px] text-slate-500 mt-1">ZIP archives, PDF, JPG, PNG, TXT, DOCX, etc. (Any type accepted)</span>
               <input
                 type="file"
@@ -392,7 +392,7 @@ export const VictimScreenerView: React.FC = () => {
           <span>Step 4: Statement, Details, or Questions for the Coordinator</span>
         </h3>
         <p className="text-xs text-slate-400 mb-3">
-          Leave your statement or comments. Anthony DiMarcello III will review, verify, answer, or delete comments per intake protocol.
+          Leave your statement or comments. Relator Anthony DiMarcello III reviews, verifies, and answers submissions on the Read-Only Comment Board.
         </p>
 
         <textarea
@@ -406,14 +406,14 @@ export const VictimScreenerView: React.FC = () => {
         {/* Submit Button */}
         <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-slate-800">
           <div className="text-xs text-slate-400">
-            Clicking Submit prepares a verified intake email to <span className="text-emerald-400 font-mono">amd949609@gmail.com</span> and records your submission.
+            Clicking Submit incorporates your anonymized card live below and prepares an intake email to <span className="text-emerald-400 font-mono">amd949609@gmail.com</span>.
           </div>
           <button
             type="submit"
-            className="flex items-center gap-2 px-6 py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-sm shadow-lg transition-all"
+            className="flex items-center gap-2 px-6 py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-sm shadow-lg transition-all cursor-pointer"
           >
             <Send className="w-4 h-4" />
-            <span>Submit Report &amp; Email Coordinator</span>
+            <span>Submit &amp; Incorporate Live</span>
           </button>
         </div>
       </form>
@@ -423,10 +423,10 @@ export const VictimScreenerView: React.FC = () => {
         <div className="bg-emerald-950/80 border-2 border-emerald-500 rounded-xl p-6 mb-10 shadow-2xl">
           <div className="flex items-center gap-2 text-emerald-300 font-bold text-lg mb-2">
             <CheckCircle2 className="w-6 h-6 text-emerald-400" />
-            <span>Submission Successfully Recorded!</span>
+            <span>Submission Live-Incorporated into System ({lastSubmitted.victimAlias})!</span>
           </div>
           <p className="text-sm text-slate-200 mb-3">
-            Your intake report has been logged. An email transmittal was prepared for <b>amd949609@gmail.com</b>. If your email client did not automatically open, click the button below to dispatch it directly:
+            Your intake report has been incorporated live into the Read-Only Comment Board below and cross-matched with primary exhibits. An email transmittal was prepared for <b>amd949609@gmail.com</b>:
           </p>
           <div className="flex flex-wrap gap-2">
             <a
@@ -439,11 +439,11 @@ export const VictimScreenerView: React.FC = () => {
             <button
               onClick={() => {
                 navigator.clipboard.writeText(
-                  `HBNC VICTIM INTAKE:\nName: ${lastSubmitted.contributorName}\nDates: ${lastSubmitted.stayDates}\nBed: ${lastSubmitted.bedNumber}\nRisk: ${lastSubmitted.riskLevel}\nSymptoms: ${lastSubmitted.symptoms.join(', ')}\nNotes: ${lastSubmitted.notes}`
+                  `HBNC VICTIM INTAKE:\nAlias: ${lastSubmitted.victimAlias}\nDates: ${lastSubmitted.stayDates}\nBed: ${lastSubmitted.bedNumber}\nRisk: ${lastSubmitted.riskLevel}\nSymptoms: ${lastSubmitted.symptoms.join(', ')}\nNotes: ${lastSubmitted.notes}`
                 );
                 alert('Copied report details to clipboard!');
               }}
-              className="px-4 py-2 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs border border-slate-700"
+              className="px-4 py-2 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs border border-slate-700 cursor-pointer"
             >
               Copy Report to Clipboard
             </button>
@@ -457,17 +457,17 @@ export const VictimScreenerView: React.FC = () => {
           <div>
             <h3 className="text-xl font-bold text-white flex items-center gap-2">
               <MessageSquare className="w-5 h-5 text-emerald-400" />
-              <span>Community Testimonies &amp; Case Notes ({submissions.length})</span>
+              <span>Read-Only Community Testimonies &amp; Live Correlated Matrix ({submissions.length})</span>
             </h3>
             <p className="text-xs text-slate-400 mt-1">
-              Read-only statements from residents, staff, and advocates. Filtered and answered by Case Coordinator Anthony DiMarcello III.
+              Read-only statements from residents, staff, and advocates—automatically anonymized and correlated with primary exhibits.
             </p>
           </div>
 
           {/* Admin Moderation Mode Toggle */}
           <button
             onClick={() => setIsAdminMode(!isAdminMode)}
-            className={`px-3 py-1.5 rounded text-xs font-mono font-bold transition-all border ${
+            className={`px-3 py-1.5 rounded text-xs font-mono font-bold transition-all border cursor-pointer ${
               isAdminMode
                 ? 'bg-amber-600 text-slate-950 border-amber-400'
                 : 'bg-slate-800 text-slate-300 border-slate-700 hover:bg-slate-700'
@@ -561,50 +561,50 @@ export const VictimScreenerView: React.FC = () => {
                 {sub.fileName && (
                   <div className="flex items-center gap-2 text-xs text-blue-400 bg-blue-950/40 border border-blue-900/60 px-3 py-1.5 rounded mb-3 font-mono">
                     <FileText className="w-3.5 h-3.5 shrink-0" />
-                    <span>Attached Evidence: {sub.fileName} ({sub.fileSize || 'Attached'})</span>
+                    <span>Live-Incorporated Evidence: {sub.fileName} ({sub.fileSize || 'Attached'})</span>
                   </div>
                 )}
 
                 {/* Coordinator Answer if present */}
                 {sub.adminAnswer && (
                   <div className="bg-slate-900/90 border-l-4 border-l-emerald-500 p-3 rounded text-xs text-slate-200 mt-2">
-                    <span className="font-bold text-emerald-400 block mb-0.5">Response from Anthony DiMarcello III:</span>
+                    <span className="font-bold text-emerald-400 block mb-0.5">Response from Relator Anthony DiMarcello III:</span>
                     <p className="text-slate-300 font-sans">{sub.adminAnswer}</p>
                   </div>
                 )}
 
-              {/* Admin Moderation Tools */}
-              {isAdminMode && (
-                <div className="mt-4 pt-3 border-t border-slate-800/80 flex flex-wrap items-center justify-between gap-3 bg-slate-900/50 p-2.5 rounded">
-                  <div className="flex-1 min-w-[240px]">
-                    <input
-                      type="text"
-                      placeholder="Add coordinator answer / verification note..."
-                      value={adminAnswerText[sub.id] || ''}
-                      onChange={(e) => setAdminAnswerText({ ...adminAnswerText, [sub.id]: e.target.value })}
-                      className="w-full bg-slate-950 border border-slate-700 rounded px-2.5 py-1 text-xs text-white"
-                    />
+                {/* Admin Moderation Tools */}
+                {isAdminMode && (
+                  <div className="mt-4 pt-3 border-t border-slate-800/80 flex flex-wrap items-center justify-between gap-3 bg-slate-900/50 p-2.5 rounded">
+                    <div className="flex-1 min-w-[240px]">
+                      <input
+                        type="text"
+                        placeholder="Add coordinator answer / verification note..."
+                        value={adminAnswerText[sub.id] || ''}
+                        onChange={(e) => setAdminAnswerText({ ...adminAnswerText, [sub.id]: e.target.value })}
+                        className="w-full bg-slate-950 border border-slate-700 rounded px-2.5 py-1 text-xs text-white"
+                      />
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => handleSaveAdminAnswer(sub.id)}
+                        className="px-2.5 py-1 rounded bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold cursor-pointer"
+                      >
+                        Post Answer
+                      </button>
+                      <button
+                        onClick={() => handleDeleteComment(sub.id)}
+                        className="flex items-center gap-1 px-2.5 py-1 rounded bg-red-900/80 hover:bg-red-800 text-red-200 text-xs font-semibold cursor-pointer"
+                      >
+                        <Trash2 className="w-3 h-3" />
+                        <span>Delete</span>
+                      </button>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => handleSaveAdminAnswer(sub.id)}
-                      className="px-2.5 py-1 rounded bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold"
-                    >
-                      Post Answer
-                    </button>
-                    <button
-                      onClick={() => handleDeleteComment(sub.id)}
-                      className="flex items-center gap-1 px-2.5 py-1 rounded bg-red-900/80 hover:bg-red-800 text-red-200 text-xs font-semibold"
-                    >
-                      <Trash2 className="w-3 h-3" />
-                      <span>Delete</span>
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
-          );
-        })}
+                )}
+              </div>
+            );
+          })}
         </div>
       </div>
     </div>

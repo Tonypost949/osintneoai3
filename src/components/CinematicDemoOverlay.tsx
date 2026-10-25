@@ -7,6 +7,7 @@ import {
   Volume2,
   VolumeX,
   Maximize2,
+  Minimize2,
   X,
   Eye,
   EyeOff,
@@ -22,18 +23,25 @@ import {
   Database,
   FolderOpen,
   Gavel,
-  Mic,
-  Sparkles
+  Network,
+  Layers,
+  Image as ImageIcon,
+  FileText,
 } from 'lucide-react';
-import { CINEMATIC_DEMO_SCENES, CinematicSceneConfig, AppViewportTab } from '../data/hbncDemoScript';
+import {
+  CINEMATIC_DEMO_SCENES,
+  CinematicSceneConfig,
+  AppViewportTab,
+  PrimaryExhibitAsset,
+} from '../data/hbncDemoScript';
 import {
   StudioVoicePersona,
   STUDIO_PERSONAS,
   normalizeTextForSpeech,
-  prepareTextForStudioAudio,
   playCyberChime,
   getBestVoiceForPersona,
   fetchGeminiNeuralAudio,
+  preloadGeminiNeuralAudio,
 } from '../utils/audioEngine';
 
 interface CinematicDemoOverlayProps {
@@ -55,7 +63,7 @@ interface CinematicDemoOverlayProps {
   onVoiceStateChange?: (isSpeaking: boolean) => void;
   fontScale?: number;
   onChangeFontScale?: (scale: number) => void;
-  onOpenFileViewer?: (filename: string) => void;
+  onOpenFileInViewer?: (filename: string, fileData?: string) => void;
 }
 
 export const CinematicDemoOverlay: React.FC<CinematicDemoOverlayProps> = ({
@@ -77,20 +85,32 @@ export const CinematicDemoOverlay: React.FC<CinematicDemoOverlayProps> = ({
   onVoiceStateChange,
   fontScale: externalFontScale = 100,
   onChangeFontScale,
-  onOpenFileViewer,
+  onOpenFileInViewer,
 }) => {
   const [voiceEnabled, setVoiceEnabled] = useState<boolean>(true);
   const [selectedVoice, setSelectedVoice] = useState<StudioVoicePersona>('Charon');
   const [showControlsDrawer, setShowControlsDrawer] = useState<boolean>(false);
   const [demoMenuHidden, setDemoMenuHidden] = useState<boolean>(false);
   const [showClosedCaptions, setShowClosedCaptions] = useState<boolean>(true);
+  const [showLiveEvidenceStage, setShowLiveEvidenceStage] = useState<boolean>(true);
+  const [manualExhibitIdx, setManualExhibitIdx] = useState<number | null>(null);
   const [internalFontScale, setInternalFontScale] = useState<number>(externalFontScale);
   const [isCurrentlySpeaking, setIsCurrentlySpeaking] = useState<boolean>(false);
-  const [activeSpeechSnippet, setActiveSpeechSnippet] = useState<string>('');
   const currentAudioElementRef = useRef<HTMLAudioElement | null>(null);
 
   const fontScale = externalFontScale !== undefined ? externalFontScale : internalFontScale;
   const scaleFactor = fontScale / 100;
+  const totalActs = CINEMATIC_DEMO_SCENES.length; // 10 Acts
+
+  // Automatically hide the bottom demo menu whenever Fullscreen Demo Mode is entered
+  useEffect(() => {
+    if (isFullScreenCinema) {
+      setDemoMenuHidden(true);
+      setShowControlsDrawer(false);
+    } else {
+      setDemoMenuHidden(false);
+    }
+  }, [isFullScreenCinema]);
 
   const updateFontScale = (nextScale: number) => {
     const clamped = Math.max(60, Math.min(200, nextScale));
@@ -109,10 +129,14 @@ export const CinematicDemoOverlay: React.FC<CinematicDemoOverlayProps> = ({
   const narrationSessionIdRef = useRef<number>(0);
   const postSpeechHoldTimerRef = useRef<number | null>(null);
   const speechKeepAliveIntervalRef = useRef<number | null>(null);
-  const controlsFadeTimerRef = useRef<number | null>(null);
 
   const scene: CinematicSceneConfig =
     CINEMATIC_DEMO_SCENES[currentSceneIndex] || CINEMATIC_DEMO_SCENES[0];
+
+  // Reset manual exhibit override when Act changes
+  useEffect(() => {
+    setManualExhibitIdx(null);
+  }, [currentSceneIndex]);
 
   // Draggable CC Box handlers
   useEffect(() => {
@@ -170,13 +194,12 @@ export const CinematicDemoOverlay: React.FC<CinematicDemoOverlayProps> = ({
       window.speechSynthesis.cancel();
     }
     setIsCurrentlySpeaking(false);
-    setActiveSpeechSnippet('');
     if (onVoiceStateChange) {
       onVoiceStateChange(false);
     }
   };
 
-  // Browser SpeechSynthesis Fallback with measured deep cadence
+  // Browser SpeechSynthesis Fallback with natural neural voice selection
   const playBrowserSpeechFallback = (spokenText: string, sessionId: number) => {
     if (sessionId !== narrationSessionIdRef.current) return;
     if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
@@ -198,26 +221,24 @@ export const CinematicDemoOverlay: React.FC<CinematicDemoOverlayProps> = ({
         if (sessionId !== narrationSessionIdRef.current) return;
         if (idx >= sentences.length) {
           setIsCurrentlySpeaking(false);
-          setActiveSpeechSnippet('Narration complete · Holding act');
           postSpeechHoldTimerRef.current = window.setTimeout(() => {
             if (sessionId !== narrationSessionIdRef.current) return;
             if (onVoiceStateChange) onVoiceStateChange(false);
-          }, 3500);
+          }, 2500);
           return;
         }
 
         const chunk = sentences[idx];
         idx += 1;
-        setActiveSpeechSnippet(chunk);
         const utterance = new SpeechSynthesisUtterance(chunk);
         if (preferredVoice) utterance.voice = preferredVoice;
 
-        utterance.rate = Math.min(1.15, Math.max(0.85, playbackSpeed * personaProfile.rateMultiplier));
+        utterance.rate = Math.min(1.12, Math.max(0.88, playbackSpeed * personaProfile.rateMultiplier));
         utterance.pitch = personaProfile.pitch;
 
         utterance.onend = () => {
           if (sessionId !== narrationSessionIdRef.current) return;
-          window.setTimeout(speakNext, 120);
+          window.setTimeout(speakNext, 100);
         };
 
         utterance.onerror = (e) => {
@@ -235,80 +256,124 @@ export const CinematicDemoOverlay: React.FC<CinematicDemoOverlayProps> = ({
     }
   };
 
-  // High-Quality Studio Voice Narration: Gemini Neural TTS First, Fallback Second
+  // Split a long Act narrative into natural 2-to-3 sentence paragraphs (~360 chars each) so Gemini 3.8 Flash TTS starts speaking within ~1 second and plays the full multi-paragraph Act seamlessly without timeout or truncation
+  const splitNarrativeIntoSpeechChunks = (text: string): string[] => {
+    const sentences =
+      text
+        .match(/[^.!?]+[.!?]+|\s*[^.!?]+$/g)
+        ?.map((s) => s.trim())
+        .filter(Boolean) || [text];
+
+    const chunks: string[] = [];
+    let currentChunk = '';
+    for (const sentence of sentences) {
+      if (currentChunk.length + sentence.length + 1 > 390 && currentChunk.length > 0) {
+        chunks.push(currentChunk.trim());
+        currentChunk = sentence;
+      } else {
+        currentChunk = currentChunk ? `${currentChunk} ${sentence}` : sentence;
+      }
+    }
+    if (currentChunk.trim()) {
+      chunks.push(currentChunk.trim());
+    }
+    return chunks.length > 0 ? chunks : [text];
+  };
+
+  // High-Definition Studio Voice Narration: Pure Data Narration Only (Never Speaks Voice Descriptions)
   const playStudioNarration = async (rawText: string, sessionId: number) => {
     if (sessionId !== narrationSessionIdRef.current) return;
 
     const spokenText = normalizeTextForSpeech(rawText);
+    const speechChunks = splitNarrativeIntoSpeechChunks(spokenText);
+
     setIsCurrentlySpeaking(true);
-    setActiveSpeechSnippet(spokenText.slice(0, 80) + '...');
     if (onVoiceStateChange) onVoiceStateChange(true);
     playCyberChime(0.85);
 
-    // 1. Attempt Gemini Studio Neural Audio Generation (Real 24kHz broadcast WAV via backend API)
-    try {
-      const audioUrl = await fetchGeminiNeuralAudio(spokenText, selectedVoice);
-      if (audioUrl && sessionId === narrationSessionIdRef.current) {
-        const audio = new Audio(audioUrl);
-        currentAudioElementRef.current = audio;
-        audio.playbackRate = playbackSpeed;
-
-        audio.onended = () => {
-          if (sessionId !== narrationSessionIdRef.current) return;
-          setIsCurrentlySpeaking(false);
-          setActiveSpeechSnippet('Studio Narration complete · Holding act');
-          postSpeechHoldTimerRef.current = window.setTimeout(() => {
-            if (sessionId !== narrationSessionIdRef.current) return;
-            if (onVoiceStateChange) onVoiceStateChange(false);
-          }, 3000);
-        };
-
-        audio.onerror = () => {
-          if (sessionId !== narrationSessionIdRef.current) return;
-          setIsCurrentlySpeaking(false);
-        };
-
-        await audio.play();
-        return;
+    // Preload next act's first neural audio chunk in background
+    const nextIdx = (currentSceneIndex + 1) % CINEMATIC_DEMO_SCENES.length;
+    const nextScene = CINEMATIC_DEMO_SCENES[nextIdx];
+    if (nextScene) {
+      const nextNormalized = normalizeTextForSpeech(`${nextScene.title}. ${nextScene.narrative}`);
+      const nextChunks = splitNarrativeIntoSpeechChunks(nextNormalized);
+      if (nextChunks[0]) {
+        preloadGeminiNeuralAudio(nextChunks[0], selectedVoice);
       }
-    } catch (err) {
-      console.warn('Gemini Neural Audio playback error:', err);
     }
 
-    // Do NOT play robotic browser speech; hold gracefully
-    setIsCurrentlySpeaking(false);
+    // 1. Attempt Gemini 3.8 Flash Neural Studio Audio (24kHz broadcast WAV via backend 5-key pool) across all chunks sequentially
+    try {
+      for (let i = 0; i < speechChunks.length; i++) {
+        if (sessionId !== narrationSessionIdRef.current) return;
+
+        // Pre-fetch chunk i+1 while chunk i is being fetched/played
+        if (i + 1 < speechChunks.length) {
+          preloadGeminiNeuralAudio(speechChunks[i + 1], selectedVoice);
+        }
+
+        const audioUrl = await fetchGeminiNeuralAudio(speechChunks[i], selectedVoice);
+        if (!audioUrl || sessionId !== narrationSessionIdRef.current) {
+          // If neural chunk fails, play remaining chunks via calibrated browser fallback
+          const remainingText = speechChunks.slice(i).join(' ');
+          playBrowserSpeechFallback(remainingText, sessionId);
+          return;
+        }
+
+        await new Promise<void>((resolve, reject) => {
+          if (sessionId !== narrationSessionIdRef.current) {
+            resolve();
+            return;
+          }
+          const audio = new Audio(audioUrl);
+          currentAudioElementRef.current = audio;
+          audio.playbackRate = playbackSpeed;
+
+          audio.onended = () => resolve();
+          audio.onerror = (err) => reject(err);
+          audio.play().catch(reject);
+        });
+      }
+
+      if (sessionId === narrationSessionIdRef.current) {
+        setIsCurrentlySpeaking(false);
+        postSpeechHoldTimerRef.current = window.setTimeout(() => {
+          if (sessionId !== narrationSessionIdRef.current) return;
+          if (onVoiceStateChange) onVoiceStateChange(false);
+        }, 2200);
+      }
+      return;
+    } catch (err) {
+      console.warn('Gemini Neural Audio playback error, falling back:', err);
+    }
+
+    // 2. Fallback to calibrated browser SpeechSynthesis
+    if (sessionId === narrationSessionIdRef.current) {
+      playBrowserSpeechFallback(spokenText, sessionId);
+    }
   };
 
   const handleTestVoice = (persona: StudioVoicePersona) => {
     setSelectedVoice(persona);
     stopCurrentAudio();
     const sessionId = narrationSessionIdRef.current;
-    const testIntro = `This is ${STUDIO_PERSONAS[persona].label}. All nine evidentiary acts, Hexavalent Chromium levels at 49 times screening standards, and the two void ab initio public land deals are loaded and ready for judicial review.`;
+    const testIntro = `17631 Cameron Lane soil tested at 980 micrograms per kilogram of Hexavalent Chromium, 49 times the state residential limit. Elizabeth Petruccio and Anthony DiMarcello's primary hospital and contract exhibits are active on screen.`;
     playStudioNarration(testIntro, sessionId);
   };
-
-  // Prefetch all acts audio into memory cache on mount / voice change
-  useEffect(() => {
-    CINEMATIC_DEMO_SCENES.forEach((sc) => {
-      const txt = prepareTextForStudioAudio(sc.actNumber, sc.title, sc.narrative);
-      fetchGeminiNeuralAudio(txt, selectedVoice).catch(() => {});
-    });
-  }, [selectedVoice]);
 
   useEffect(() => {
     stopCurrentAudio();
     if (!isActive || !voiceEnabled) return;
 
     const sessionId = narrationSessionIdRef.current;
-    const narrationText = prepareTextForStudioAudio(scene.actNumber, scene.title, scene.narrative);
+    // Speak ONLY the Act Title and Direct Data Narrative (no redundant "Act 06. Act 6:" or voice descriptions)
+    const narrationText = `${scene.title}. ${scene.narrative}`;
     playStudioNarration(narrationText, sessionId);
 
     return () => {
       stopCurrentAudio();
     };
   }, [currentSceneIndex, isActive, voiceEnabled, selectedVoice, playbackSpeed]);
-
-
 
   if (!isActive) return null;
 
@@ -329,145 +394,326 @@ export const CinematicDemoOverlay: React.FC<CinematicDemoOverlayProps> = ({
       ? Math.min(buttonSequence.length - 1, Math.floor((sceneProgress / 100) * buttonSequence.length))
       : 0;
 
+  // Determine which primary exhibit in the current Act is actively spotlighted
+  const primaryExhibits: PrimaryExhibitAsset[] = scene.primaryExhibits || [];
+  const autoExhibitIdx =
+    primaryExhibits.length > 0
+      ? Math.min(
+          primaryExhibits.length - 1,
+          Math.floor((sceneProgress / 100) * primaryExhibits.length)
+        )
+      : 0;
+  const activeExhibitIdx =
+    manualExhibitIdx !== null && manualExhibitIdx < primaryExhibits.length
+      ? manualExhibitIdx
+      : autoExhibitIdx;
+  const currentExhibit: PrimaryExhibitAsset | undefined = primaryExhibits[activeExhibitIdx];
+
   const demoBoxBaseFontPx = Math.max(7.5, Math.round(12 * scaleFactor * 10) / 10);
-  const defaultCcLeft = 20;
-  const defaultCcTop = 125;
+  const defaultCcLeft = 18;
+  const defaultCcTop = isFullScreenCinema ? 18 : 122;
+  const stageTopPx = isFullScreenCinema ? '18px' : '122px';
+
+  // Hide bottom demo menu when either `demoMenuHidden` OR `isFullScreenCinema` is active (unless user explicitly opened it)
+  const isBottomMenuHidden = demoMenuHidden;
 
   return (
     <>
-      {/* Subtle Widescreen Vignette & Floating Draggable Closed Captions (CC) Box */}
+      {/* Subtle Widescreen Vignette, Floating CC Box & Live Synchronized Primary Evidence Stage */}
       <div className="pointer-events-none fixed inset-0 z-30 overflow-hidden">
-        <div className="w-full h-full shadow-[inset_0_0_80px_rgba(2,6,23,0.8)]" />
+        <div className="w-full h-full shadow-[inset_0_0_80px_rgba(2,6,23,0.75)]" />
 
-        {/* Floating & Movable Closed Captions (CC) Box */}
+        {/* LEFT: Floating & Movable Closed Captions (CC) Box */}
         {showClosedCaptions && (
           <div
             ref={ccBoxRef}
             onMouseDown={handleCcMouseDown}
             title="Drag anywhere on this Closed Captions box to move and float it around the screen"
             style={{
-              width: `min(94vw, ${Math.round(440 * scaleFactor)}px)`,
+              width: `min(92vw, ${Math.round(420 * scaleFactor)}px)`,
               left: ccPosition ? `${ccPosition.x}px` : `${defaultCcLeft}px`,
               top: ccPosition ? `${ccPosition.y}px` : `${defaultCcTop}px`,
               padding: `${Math.max(6, Math.round(10 * scaleFactor))}px ${Math.max(8, Math.round(14 * scaleFactor))}px`,
               borderRadius: `${Math.max(8, Math.round(12 * scaleFactor))}px`,
             }}
-            className={`pointer-events-auto fixed z-40 bg-slate-950/90 hover:bg-slate-950/95 border ${
-              isDraggingCc ? 'border-cyan-400 ring-2 ring-cyan-500/30 cursor-grabbing' : 'border-slate-800 hover:border-slate-700 cursor-grab'
-            } shadow-2xl backdrop-blur-md text-slate-100 select-none transition-[width,padding] duration-200`}
+            className={`pointer-events-auto fixed z-40 bg-slate-950/92 hover:bg-slate-950/96 border ${
+              isDraggingCc
+                ? 'border-cyan-400 ring-2 ring-cyan-500/30 cursor-grabbing'
+                : 'border-slate-800 hover:border-slate-700 cursor-grab'
+            } shadow-2xl backdrop-blur-md text-slate-100 select-none transition-[width,padding,top] duration-200`}
           >
+            <div className="flex items-center justify-between mb-1">
+              <span className="text-[10px] font-mono font-bold text-amber-400 uppercase">
+                DATA CAPTIONS // ACT {scene.actNumber} OF {totalActs} &middot; {scene.subtitle}
+              </span>
+              <span className="text-[9px] text-slate-400 font-mono">Drag to Move</span>
+            </div>
             <p
               style={{
-                fontSize: `${Math.max(9, Math.round(13 * scaleFactor * 10) / 10)}px`,
-                lineHeight: 1.55,
+                fontSize: `${Math.max(8, Math.round(12.2 * scaleFactor * 10) / 10)}px`,
+                lineHeight: 1.48,
               }}
               className="text-slate-100 font-serif leading-relaxed"
             >
               {scene.narrative}
             </p>
+          </div>
+        )}
 
-            {/* Live Exhibit Link During Demo */}
-            {scene.evidenceModalTarget && (
-              <div className="mt-2.5 pt-2 border-t border-slate-800/80 flex items-center justify-between gap-2">
+        {/* RIGHT: Synchronized Primary Evidence Stage (Displays Actual Exhibits, Metrics & Controlling Statutes for Each Act) */}
+        {showLiveEvidenceStage && currentExhibit && (
+          <div
+            style={{
+              width: `min(92vw, ${Math.round(430 * scaleFactor)}px)`,
+              top: stageTopPx,
+              right: '18px',
+            }}
+            className="pointer-events-auto fixed z-40 bg-slate-950/95 border-2 border-cyan-500/70 rounded-xl shadow-2xl backdrop-blur-md text-slate-100 overflow-hidden transition-all duration-300"
+          >
+            {/* Stage Header */}
+            <div className="px-3.5 py-2 bg-gradient-to-r from-slate-950 via-cyan-950/60 to-slate-950 border-b border-slate-800 flex items-center justify-between gap-2">
+              <div className="flex items-center gap-1.5 min-w-0">
+                <span className="h-2 w-2 rounded-full bg-red-500 animate-ping shrink-0" />
+                <span className="text-[10px] font-mono font-extrabold text-cyan-300 uppercase tracking-wider truncate">
+                  PRIMARY EVIDENCE // ACT {scene.actNumber} OF {totalActs}
+                </span>
+              </div>
+              <div className="flex items-center gap-1 shrink-0">
+                {primaryExhibits.map((ex, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => setManualExhibitIdx(idx)}
+                    className={`px-1.5 py-0.5 rounded text-[9px] font-mono font-bold cursor-pointer ${
+                      idx === activeExhibitIdx
+                        ? 'bg-amber-400 text-slate-950'
+                        : 'bg-slate-800 text-slate-400 hover:text-white'
+                    }`}
+                    title={ex.label}
+                  >
+                    #{idx + 1}
+                  </button>
+                ))}
                 <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    if (onOpenFileViewer) {
-                      onOpenFileViewer(scene.evidenceModalTarget!);
-                    }
-                  }}
-                  className="px-2.5 py-1 rounded bg-red-950/90 hover:bg-red-900 border border-red-500/60 text-red-200 text-[11px] font-mono font-bold flex items-center gap-1.5 cursor-pointer shadow-md transition-all"
-                  title={`Open exhibit: ${scene.evidenceModalTarget}`}
+                  onClick={() => setShowLiveEvidenceStage(false)}
+                  className="p-0.5 rounded text-slate-400 hover:text-white hover:bg-slate-800 cursor-pointer ml-1"
+                  title="Minimize Live Exhibit Stage"
                 >
-                  <FolderOpen className="w-3.5 h-3.5 text-red-400 shrink-0" />
-                  <span className="truncate max-w-[220px]">Exhibit: {scene.evidenceModalTarget}</span>
-                  <span className="text-amber-300 ml-1">&rarr;</span>
+                  <X className="w-3.5 h-3.5" />
                 </button>
-                <span className="text-[10px] text-slate-500 font-mono">Act {scene.actNumber}/09</span>
+              </div>
+            </div>
+
+            {/* Key Data Metrics Bar for Current Act */}
+            {scene.metrics && scene.metrics.length > 0 && (
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-1 px-3 pt-2.5 pb-1 bg-slate-950/90 border-b border-slate-900">
+                {scene.metrics.map((m, mIdx) => (
+                  <div
+                    key={mIdx}
+                    className="bg-slate-900/90 border border-slate-800 rounded px-2 py-1"
+                  >
+                    <div className="text-[8.5px] font-mono uppercase text-slate-400 truncate">
+                      {m.label}
+                    </div>
+                    <div className="text-[10.5px] font-mono font-extrabold text-cyan-300 truncate">
+                      {m.value}
+                    </div>
+                  </div>
+                ))}
               </div>
             )}
+
+            {/* Primary Exhibit Visual Preview */}
+            <div className="p-3">
+              <div className="flex items-center justify-between gap-2 mb-1.5">
+                <span className="text-xs font-bold text-white truncate">
+                  {currentExhibit.label}
+                </span>
+                <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-red-950/90 text-red-300 border border-red-700/60 font-bold shrink-0">
+                  {currentExhibit.dateOrCitation}
+                </span>
+              </div>
+
+              {currentExhibit.type === 'image' ? (
+                <div
+                  onClick={() =>
+                    onOpenFileInViewer &&
+                    onOpenFileInViewer(currentExhibit.filename, currentExhibit.url)
+                  }
+                  className="relative rounded-lg overflow-hidden border border-slate-800 bg-slate-900 mb-2 cursor-pointer group"
+                >
+                  <img
+                    src={currentExhibit.url}
+                    alt={currentExhibit.label}
+                    className="w-full h-44 object-cover object-top group-hover:scale-[1.03] transition-transform duration-300"
+                  />
+                  <div className="absolute bottom-1.5 right-1.5 px-2 py-0.5 rounded bg-slate-950/90 border border-cyan-500/60 text-cyan-300 text-[10px] font-mono font-bold flex items-center gap-1">
+                    <Eye className="w-3 h-3" />
+                    <span>Click to Inspect Full Record</span>
+                  </div>
+                </div>
+              ) : (
+                <div
+                  onClick={() =>
+                    onOpenFileInViewer &&
+                    onOpenFileInViewer(currentExhibit.filename, currentExhibit.url)
+                  }
+                  className="p-3 rounded-lg border border-cyan-800/60 bg-slate-900/90 mb-2 cursor-pointer hover:border-cyan-400 transition-all"
+                >
+                  <div className="flex items-center justify-between text-[11px] font-mono text-cyan-300 mb-1">
+                    <span className="flex items-center gap-1 font-bold">
+                      <FileText className="w-3.5 h-3.5 text-amber-400" />
+                      {currentExhibit.filename}
+                    </span>
+                    <span className="underline">Open Full Document &rarr;</span>
+                  </div>
+                  <p className="text-[11px] text-slate-300 font-mono line-clamp-3">
+                    {currentExhibit.caption}
+                  </p>
+                </div>
+              )}
+
+              {/* Caption & Verbatim Quote */}
+              <p className="text-[11px] text-slate-300 leading-snug mb-1.5">
+                {currentExhibit.caption}
+              </p>
+              {currentExhibit.keyQuote && (
+                <div className="p-2 rounded bg-slate-900/95 border-l-2 border-amber-400 text-[10.5px] font-serif italic text-amber-200 mb-2">
+                  {currentExhibit.keyQuote}
+                </div>
+              )}
+
+              {/* Controlling Statutes Strip for Current Act */}
+              {scene.controllingStatutes && scene.controllingStatutes.length > 0 && (
+                <div className="pt-1.5 border-t border-slate-800/90">
+                  <div className="text-[9.5px] font-mono uppercase text-slate-400 font-bold mb-1">
+                    CONTROLLING STATUTES (ACT {scene.actNumber}):
+                  </div>
+                  <div className="flex flex-wrap gap-1">
+                    {scene.controllingStatutes.map((st, sIdx) => (
+                      <span
+                        key={sIdx}
+                        className="px-1.5 py-0.5 rounded bg-slate-900 border border-amber-500/40 text-amber-300 text-[9.5px] font-mono"
+                      >
+                        {st}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         )}
       </div>
 
-      {/* Floating Exit Fullscreen Button in Cinema Mode */}
-      {isFullScreenCinema && (
-        <button
-          onClick={onToggleFullScreenCinema}
-          className="fixed top-3 right-3 z-50 px-3.5 py-1.5 rounded-full bg-slate-950/90 hover:bg-slate-900 border border-slate-700/80 text-slate-300 hover:text-white text-xs font-mono backdrop-blur-md shadow-2xl flex items-center gap-1.5 transition-all cursor-pointer ring-1 ring-white/10"
-          title="Exit Fullscreen (or press Esc)"
+      {/* When Fullscreen Cinema OR Demo Menu Hidden is active: minimal subtle hover pill in bottom-right corner */}
+      {isBottomMenuHidden ? (
+        <div
+          style={{ fontSize: `${demoBoxBaseFontPx}px` }}
+          className="fixed bottom-2 right-2 z-40 flex items-center gap-1.5 opacity-25 hover:opacity-100 transition-opacity duration-200"
         >
-          <Maximize2 className="w-3.5 h-3.5 text-cyan-400" />
-          <span>Exit Fullscreen (Esc)</span>
-        </button>
-      )}
-
-      {/* Bottom Demo Controls - Completely omitted in Fullscreen mode per user directive */}
-      {!isFullScreenCinema && (
-        demoMenuHidden ? (
-          <div
-            style={{ fontSize: `${demoBoxBaseFontPx}px` }}
-            className="fixed bottom-2.5 right-3 z-40 flex items-center gap-[0.45em]"
-          >
+          {isFullScreenCinema && (
             <button
-              onClick={() => setDemoMenuHidden(false)}
-              className="px-[0.95em] py-[0.5em] rounded-full bg-slate-950/90 hover:bg-slate-900 border border-cyan-500/50 text-cyan-200 text-[0.92em] font-mono font-bold flex items-center gap-[0.45em] shadow-2xl backdrop-blur-md cursor-pointer transition-all"
-              title="Show Demo Controls Menu"
+              onClick={onToggleFullScreenCinema}
+              className="px-2.5 py-1 rounded-full bg-slate-950/90 hover:bg-slate-900 border border-amber-500/50 text-amber-200 text-[11px] font-mono font-bold flex items-center gap-1 shadow-xl backdrop-blur-md cursor-pointer"
+              title="Exit Fullscreen Cinema (Restores Top & Demo Menus)"
             >
-              <Eye className="w-[1.15em] h-[1.15em] text-cyan-400 shrink-0" />
-              <span>Show Demo Menu (Act {scene.actNumber}/09)</span>
+              <Minimize2 className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+              <span>Exit Fullscreen</span>
             </button>
-          </div>
-        ) : (
-          /* Bottom Demo Box (Mini-Player & Fullsize Controls Drawer) */
-          <div
-            style={{
-              fontSize: `${demoBoxBaseFontPx}px`,
-              width: showControlsDrawer ? `min(96vw, ${Math.round(896 * scaleFactor)}px)` : 'auto',
-              maxWidth: '96vw',
-            }}
-            className="fixed bottom-2.5 left-1/2 -translate-x-1/2 z-40 transition-all duration-200"
+          )}
+          <button
+            onClick={() => setDemoMenuHidden(false)}
+            className="px-2.5 py-1 rounded-full bg-slate-950/90 hover:bg-slate-900 border border-cyan-500/50 text-cyan-200 text-[11px] font-mono font-bold flex items-center gap-1 shadow-xl backdrop-blur-md cursor-pointer"
+            title="Show Demo Controls Menu"
           >
+            <Eye className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
+            <span>Controls (Act {scene.actNumber}/{totalActs})</span>
+          </button>
+        </div>
+      ) : (
+        /* Bottom Demo Box (Mini-Player & Fullsize Controls Drawer) */
+        <div
+          style={{
+            fontSize: `${demoBoxBaseFontPx}px`,
+            width: showControlsDrawer ? `min(96vw, ${Math.round(940 * scaleFactor)}px)` : 'auto',
+            maxWidth: '96vw',
+          }}
+          className="fixed bottom-2.5 left-1/2 -translate-x-1/2 z-40 transition-all duration-200"
+        >
+          <div
+            style={{ borderRadius: `${Math.max(10, Math.round(16 * scaleFactor))}px` }}
+            className="bg-slate-950/92 hover:bg-slate-950/96 border border-cyan-500/40 shadow-2xl backdrop-blur-md text-slate-100 overflow-hidden transition-all duration-200"
+          >
+            {/* Progress Hairline */}
             <div
-              style={{ borderRadius: `${Math.max(10, Math.round(16 * scaleFactor))}px` }}
-              className="bg-slate-950/90 hover:bg-slate-950/95 border border-cyan-500/40 shadow-2xl backdrop-blur-md text-slate-100 overflow-hidden transition-all duration-200"
+              style={{ height: `${Math.max(3, Math.round(4 * scaleFactor))}px` }}
+              className="w-full bg-slate-900 relative overflow-hidden"
             >
-              {/* Progress Hairline */}
               <div
-                style={{ height: `${Math.max(3, Math.round(4 * scaleFactor))}px` }}
-                className="w-full bg-slate-900 relative overflow-hidden"
-              >
-                <div
-                  className="h-full bg-gradient-to-r from-red-500 via-amber-400 to-cyan-500 transition-all duration-200"
-                  style={{ width: `${sceneProgress}%` }}
-                />
+                className="h-full bg-gradient-to-r from-red-500 via-amber-400 to-cyan-500 transition-all duration-200"
+                style={{ width: `${sceneProgress}%` }}
+              />
+            </div>
+
+            {/* 10-Act Scrubber Strip + Instant Viewport Switcher */}
+            <div className="px-[0.9em] py-[0.35em] bg-slate-900/90 border-b border-slate-800/80 flex items-center justify-between gap-[0.5em] overflow-x-auto">
+              <div className="flex items-center gap-[0.25em] overflow-x-auto">
+                <span className="text-[0.78em] font-mono text-slate-400 uppercase font-bold mr-[0.2em] shrink-0">
+                  Acts:
+                </span>
+                {CINEMATIC_DEMO_SCENES.map((s, idx) => {
+                  const isCurrent = idx === currentSceneIndex;
+                  const isPast = idx < currentSceneIndex;
+                  return (
+                    <button
+                      key={s.id}
+                      onClick={() => onSelectScene(idx)}
+                      title={`Act ${s.actNumber}: ${s.title}`}
+                      className={`px-[0.5em] py-[0.15em] rounded text-[0.8em] font-mono font-bold transition-all cursor-pointer shrink-0 ${
+                        isCurrent
+                          ? 'bg-cyan-500 text-slate-950 ring-1 ring-cyan-300 shadow'
+                          : isPast
+                          ? 'bg-slate-800 text-cyan-400 hover:bg-slate-700'
+                          : 'bg-slate-950 text-slate-400 hover:bg-slate-800 border border-slate-800'
+                      }`}
+                    >
+                      {s.actNumber}
+                    </button>
+                  );
+                })}
               </div>
 
-              {/* Single-Row Mini-Player Bar */}
-              <div className="px-[0.95em] py-[0.5em] flex flex-wrap items-center justify-between gap-[0.65em]">
-                {/* Act Badge & Short Title */}
-                <div className="flex items-center gap-[0.55em] min-w-0">
-                  <span className="px-[0.5em] py-[0.18em] rounded bg-red-950/90 border border-red-500/40 text-red-300 text-[0.84em] font-mono font-bold shrink-0">
-                    ACT {scene.actNumber}/09
-                  </span>
-                  <span
-                    style={{ maxWidth: `min(58vw, ${Math.round(250 * scaleFactor)}px)` }}
-                    className="text-[1em] font-bold text-white truncate"
-                  >
-                    {scene.title}
-                  </span>
-                </div>
+              <div className="hidden md:flex items-center gap-[0.35em] shrink-0 text-[0.78em] font-mono">
+                <span className="px-[0.5em] py-[0.15em] rounded bg-emerald-950/90 border border-emerald-500/50 text-emerald-300 font-bold">
+                  🔒 Read-Only Master &middot; Live .ZIP Upload Active
+                </span>
+              </div>
+            </div>
 
-                {/* Mini-Player Transport & Controls */}
-                <div className="flex flex-wrap items-center gap-[0.45em] shrink-0">
-                  <button
-                    onClick={handlePrev}
-                    className="p-[0.45em] rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-800 cursor-pointer"
-                    title="Previous Act"
-                  >
-                    <SkipBack className="w-[1.1em] h-[1.1em]" />
-                  </button>
+            {/* Single-Row Mini-Player Bar */}
+            <div className="px-[0.95em] py-[0.5em] flex flex-wrap items-center justify-between gap-[0.65em]">
+              {/* Act Badge & Short Title */}
+              <div className="flex items-center gap-[0.55em] min-w-0">
+                <span className="px-[0.5em] py-[0.18em] rounded bg-red-950/90 border border-red-500/40 text-red-300 text-[0.84em] font-mono font-bold shrink-0">
+                  ACT {scene.actNumber}/{totalActs}
+                </span>
+                <span
+                  style={{ maxWidth: `min(52vw, ${Math.round(240 * scaleFactor)}px)` }}
+                  className="text-[1em] font-bold text-white truncate"
+                >
+                  {scene.title}
+                </span>
+              </div>
+
+              {/* Mini-Player Transport & Controls */}
+              <div className="flex flex-wrap items-center gap-[0.45em] shrink-0">
+                <button
+                  onClick={handlePrev}
+                  className="p-[0.45em] rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-800 cursor-pointer"
+                  title="Previous Act"
+                >
+                  <SkipBack className="w-[1.1em] h-[1.1em]" />
+                </button>
 
                 <button
                   onClick={onTogglePlay}
@@ -510,11 +756,10 @@ export const CinematicDemoOverlay: React.FC<CinematicDemoOverlayProps> = ({
                     <span>{voiceEnabled ? 'Voice ON' : 'Muted'}</span>
                   </button>
 
-                  {/* Live Equalizer + Test Tintin Voice */}
+                  {/* Live Equalizer + Studio Neural Voice Selector */}
                   {voiceEnabled && (
                     <div className="hidden sm:flex items-center gap-[0.35em] bg-slate-900 border border-slate-800 px-[0.55em] py-[0.25em] rounded-lg">
-                      {/* Animated Equalizer */}
-                      <div className="flex items-end gap-[2px] h-[1em] px-[0.1em]" title={isCurrentlySpeaking ? "Voice is actively speaking" : "Speech idle"}>
+                      <div className="flex items-end gap-[2px] h-[1em] px-[0.1em]" title={isCurrentlySpeaking ? 'Studio Neural Voice speaking' : 'Speech idle'}>
                         <span className={`w-[2px] rounded-full bg-cyan-400 transition-all ${isCurrentlySpeaking ? 'animate-bounce h-[0.9em]' : 'h-[0.25em] opacity-40'}`} style={{ animationDuration: '0.6s' }} />
                         <span className={`w-[2px] rounded-full bg-cyan-300 transition-all ${isCurrentlySpeaking ? 'animate-bounce h-[0.6em]' : 'h-[0.4em] opacity-40'}`} style={{ animationDuration: '0.45s' }} />
                         <span className={`w-[2px] rounded-full bg-amber-400 transition-all ${isCurrentlySpeaking ? 'animate-bounce h-[1em]' : 'h-[0.2em] opacity-40'}`} style={{ animationDuration: '0.7s' }} />
@@ -529,13 +774,27 @@ export const CinematicDemoOverlay: React.FC<CinematicDemoOverlayProps> = ({
                       <button
                         onClick={() => handleTestVoice(selectedVoice)}
                         className="px-[0.45em] py-[0.15em] rounded bg-cyan-950 hover:bg-cyan-900 border border-cyan-500/50 text-[0.8em] font-mono text-cyan-200 hover:text-white cursor-pointer transition-all shrink-0"
-                        title="Click to test articulate voice narration right now"
+                        title="Test Gemini 3.8 Flash Studio Neural Voice"
                       >
                         🔊 Test
                       </button>
                     </div>
                   )}
                 </div>
+
+                {/* Live Evidence Stage Toggle */}
+                <button
+                  onClick={() => setShowLiveEvidenceStage(!showLiveEvidenceStage)}
+                  className={`px-[0.65em] py-[0.35em] rounded-lg border text-[0.9em] font-mono font-bold flex items-center gap-[0.35em] transition-all cursor-pointer ${
+                    showLiveEvidenceStage
+                      ? 'bg-cyan-950/90 hover:bg-cyan-900 border-cyan-400/70 text-cyan-200'
+                      : 'bg-slate-900 hover:bg-slate-800 border-slate-700 text-slate-400'
+                  }`}
+                  title="Toggle Synchronized Primary Evidence Stage"
+                >
+                  <ImageIcon className="w-[1.1em] h-[1.1em] shrink-0" />
+                  <span>{showLiveEvidenceStage ? 'Exhibits ON' : 'Exhibits OFF'}</span>
+                </button>
 
                 {/* Closed Captions Toggle */}
                 <button
@@ -550,7 +809,6 @@ export const CinematicDemoOverlay: React.FC<CinematicDemoOverlayProps> = ({
                   <Captions className="w-[1.1em] h-[1.1em] shrink-0" />
                   <span>{showClosedCaptions ? 'CC ON' : 'CC OFF'}</span>
                 </button>
-
 
                 {/* Font Size A- / % / A+ */}
                 <div className="flex items-center bg-slate-900 border border-slate-700 rounded-lg overflow-hidden text-[0.9em] font-mono">
@@ -577,14 +835,14 @@ export const CinematicDemoOverlay: React.FC<CinematicDemoOverlayProps> = ({
                   </button>
                 </div>
 
-                {/* Fullscreen Button */}
+                {/* Fullscreen Button (Hides Top Menu & Demo Menu Automatically) */}
                 <button
                   onClick={onToggleFullScreenCinema}
                   className="px-[0.65em] py-[0.35em] rounded-lg border bg-cyan-950 hover:bg-cyan-900 border-cyan-400 text-cyan-200 text-[0.9em] font-mono font-bold flex items-center gap-[0.35em] cursor-pointer"
-                  title="Fullscreen"
+                  title="Fullscreen Presentation (Hides Top Menu & Demo Menu)"
                 >
                   <Maximize2 className="w-[1.1em] h-[1.1em] text-cyan-300 shrink-0" />
-                  <span>Fullscreen</span>
+                  <span className="hidden md:inline">{isFullScreenCinema ? 'Exit Fullscreen' : 'Fullscreen'}</span>
                 </button>
 
                 {/* Toggle Mini / Fullsize */}
@@ -595,10 +853,10 @@ export const CinematicDemoOverlay: React.FC<CinematicDemoOverlayProps> = ({
                       ? 'bg-cyan-950 border-cyan-400 text-cyan-200 font-bold'
                       : 'bg-slate-900 hover:bg-slate-800 border-slate-700 text-slate-300'
                   }`}
-                  title="Toggle Fullsize Controls"
+                  title="Toggle Fullsize Director Controls"
                 >
                   <Sliders className="w-[1.1em] h-[1.1em] text-cyan-400 shrink-0" />
-                  <span className="hidden md:inline">{showControlsDrawer ? 'Mini' : 'Fullsize'}</span>
+                  <span className="hidden md:inline">{showControlsDrawer ? 'Mini' : 'Director'}</span>
                 </button>
 
                 {/* Hide Menu */}
@@ -608,7 +866,7 @@ export const CinematicDemoOverlay: React.FC<CinematicDemoOverlayProps> = ({
                   title="Hide Demo Menu"
                 >
                   <EyeOff className="w-[1.1em] h-[1.1em] text-amber-300 shrink-0" />
-                  <span className="hidden sm:inline">Hide Menu</span>
+                  <span className="hidden sm:inline">Hide</span>
                 </button>
 
                 <button
@@ -628,7 +886,7 @@ export const CinematicDemoOverlay: React.FC<CinematicDemoOverlayProps> = ({
                 {buttonSequence.length > 0 && (
                   <div className="flex flex-wrap items-center gap-[0.4em]">
                     <span className="text-[0.84em] font-mono uppercase text-amber-400 font-bold mr-[0.25em]">
-                      Act Steps:
+                      Act Data Points:
                     </span>
                     {buttonSequence.map((btnLabel, idx) => {
                       const isCurrentBtn = idx === activeButtonIdx;
@@ -652,7 +910,7 @@ export const CinematicDemoOverlay: React.FC<CinematicDemoOverlayProps> = ({
                   </div>
                 )}
 
-                {/* 8-Act Scrubber Strip */}
+                {/* 10-Act Scrubber Strip */}
                 <div className="flex items-center justify-between gap-[0.6em] overflow-x-auto py-[0.15em]">
                   <div className="flex items-center gap-[0.3em] overflow-x-auto">
                     {CINEMATIC_DEMO_SCENES.map((s, idx) => {
@@ -663,7 +921,7 @@ export const CinematicDemoOverlay: React.FC<CinematicDemoOverlayProps> = ({
                           key={s.id}
                           onClick={() => onSelectScene(idx)}
                           title={`Act ${s.actNumber}: ${s.title}`}
-                          className={`px-[0.5em] py-[0.2em] rounded text-[0.84em] font-mono font-bold transition-all cursor-pointer shrink-0 ${
+                          className={`px-[0.55em] py-[0.2em] rounded text-[0.84em] font-mono font-bold transition-all cursor-pointer shrink-0 ${
                             isCurrent
                               ? 'bg-cyan-500 text-slate-950 ring-1 ring-cyan-300'
                               : isPast
@@ -671,7 +929,7 @@ export const CinematicDemoOverlay: React.FC<CinematicDemoOverlayProps> = ({
                               : 'bg-slate-900 text-slate-400 hover:bg-slate-800'
                           }`}
                         >
-                          {s.actNumber}
+                          Act {s.actNumber}
                         </button>
                       );
                     })}
@@ -682,16 +940,19 @@ export const CinematicDemoOverlay: React.FC<CinematicDemoOverlayProps> = ({
                   </div>
                 </div>
 
-                {/* Controls Row: Viewport Tabs & Preferences */}
+                {/* Controls Row: Viewport Tabs & Studio Voice Personas */}
                 <div className="flex flex-wrap items-center justify-between gap-[0.5em] pt-[0.35em] border-t border-slate-900">
                   <div className="flex flex-wrap items-center gap-[0.35em]">
                     {(
                       [
+                        { id: 'evidence-law-hybrid', label: 'Evidence-Law Hybrid', icon: Layers },
+                        { id: 'maltego', label: 'Maltego Graph', icon: Network },
                         { id: 'master', label: 'Master Record', icon: ShieldAlert },
                         { id: 'ailaws', label: '/ailaws Matrix', icon: Scale },
+                        { id: 'void-deals', label: '2 Void Deals', icon: Gavel },
                         { id: 'screener', label: 'Victim Screener', icon: UserCheck },
-                        { id: 'outreach', label: 'Outreach Telemetry', icon: BarChart3 },
-                        { id: 'osint', label: 'OSINT Library', icon: Database },
+                        { id: 'outreach', label: 'Outreach (184)', icon: BarChart3 },
+                        { id: 'osint', label: 'OSINT (31)', icon: Database },
                         { id: 'locker', label: 'Evidence Locker', icon: FolderOpen },
                       ] as const
                     ).map((vp) => {
@@ -725,9 +986,9 @@ export const CinematicDemoOverlay: React.FC<CinematicDemoOverlayProps> = ({
 
                     <div className="flex items-center bg-slate-900 border border-slate-800 rounded p-[0.15em] text-[0.84em] font-mono">
                       {[
-                        { val: 0.5, label: '0.5x' },
                         { val: 0.75, label: '0.75x' },
                         { val: 1, label: '1x' },
+                        { val: 1.15, label: '1.15x' },
                       ].map((spd) => (
                         <button
                           key={spd.val}
@@ -743,9 +1004,9 @@ export const CinematicDemoOverlay: React.FC<CinematicDemoOverlayProps> = ({
 
                     {voiceEnabled && (
                       <div className="flex items-center gap-[0.35em]">
-                        <span className="text-[0.8em] font-mono text-slate-400 hidden lg:inline">Voice Persona:</span>
+                        <span className="text-[0.8em] font-mono text-slate-400 hidden lg:inline">Voice:</span>
                         <div className="flex items-center gap-[0.25em]">
-                          {(['Charon', 'Fenrir', 'Kore', 'Zephyr'] as const).map((p) => {
+                          {(['Charon', 'Fenrir', 'Kore', 'Aoede', 'Zephyr'] as const).map((p) => {
                             const isP = selectedVoice === p;
                             return (
                               <button
@@ -756,7 +1017,7 @@ export const CinematicDemoOverlay: React.FC<CinematicDemoOverlayProps> = ({
                                     ? 'bg-amber-500 text-slate-950 font-bold shadow'
                                     : 'bg-slate-900 text-slate-400 hover:text-white border border-slate-800'
                                 }`}
-                                title={`Switch voice to ${STUDIO_PERSONAS[p].label}`}
+                                title={`Switch Studio Voice to ${STUDIO_PERSONAS[p].label}`}
                               >
                                 {p}
                               </button>
@@ -782,7 +1043,7 @@ export const CinematicDemoOverlay: React.FC<CinematicDemoOverlayProps> = ({
             )}
           </div>
         </div>
-      ))}
+      )}
     </>
   );
 };
