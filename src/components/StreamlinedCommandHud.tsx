@@ -264,6 +264,28 @@ export const StreamlinedCommandHud: React.FC<StreamlinedCommandHudProps> = ({
               <Coins className="w-3.5 h-3.5" />
               <span>⛓️ Transparency Token (TFT / OSINT / PAT)</span>
             </button>
+
+            <button
+              onClick={() => onSwitchTab('broadsheet-newspaper')}
+              className={`px-3 py-1.5 rounded flex items-center gap-1.5 font-bold transition-all cursor-pointer ${
+                activeTab === 'broadsheet-newspaper'
+                  ? 'bg-amber-600 text-slate-950 font-black'
+                  : 'bg-slate-800 text-amber-300 hover:bg-slate-700'
+              }`}
+            >
+              <span>🗞️ Broadsheet Press</span>
+            </button>
+
+            <button
+              onClick={() => onSwitchTab('user-workspaces')}
+              className={`px-3 py-1.5 rounded flex items-center gap-1.5 font-bold transition-all cursor-pointer ${
+                activeTab === 'user-workspaces'
+                  ? 'bg-indigo-600 text-white font-black'
+                  : 'bg-slate-800 text-indigo-300 hover:bg-slate-700'
+              }`}
+            >
+              <span>🏛️ User Workspaces &amp; 72 Portals</span>
+            </button>
           </div>
 
           {/* Direct File Trigger */}

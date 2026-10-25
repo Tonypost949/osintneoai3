@@ -17,6 +17,8 @@ import { AiAssistantModal } from './components/AiAssistantModal';
 import { StreamlinedCommandHud } from './components/StreamlinedCommandHud';
 import { LeftSideCommandMenu } from './components/LeftSideCommandMenu';
 import { IntegrationsHubView } from './components/IntegrationsHubView';
+import { BroadsheetNewspaperView } from './components/BroadsheetNewspaperView';
+import { UserWorkspacesHubView } from './components/UserWorkspacesHubView';
 import { CINEMATIC_DEMO_SCENES, AppViewportTab } from './data/hbncDemoScript';
 import {
   StudioVoicePersona,
@@ -320,7 +322,29 @@ export default function App() {
                 }`}
               >
                 <Coins className="w-3.5 h-3.5 text-amber-400" />
-                <span>⛓️ Transparency Token (TFT / OSINT / PAT) &amp; Sepolia Escrow</span>
+                <span>⛓️ Transparency Token (TFT / OSINT / PAT)</span>
+              </button>
+
+              <button
+                onClick={() => setActiveTab('broadsheet-newspaper')}
+                className={`flex items-center gap-1.5 px-2.5 py-1 rounded font-bold transition-all whitespace-nowrap cursor-pointer ${
+                  activeTab === 'broadsheet-newspaper'
+                    ? 'bg-amber-600 text-slate-950 font-black shadow-lg shadow-amber-500/30'
+                    : 'text-amber-300 hover:text-white hover:bg-slate-800 border border-amber-600/50'
+                }`}
+              >
+                <span>🗞️ The Tax-Funded Dispatch (Broadsheet)</span>
+              </button>
+
+              <button
+                onClick={() => setActiveTab('user-workspaces')}
+                className={`flex items-center gap-1.5 px-2.5 py-1 rounded font-bold transition-all whitespace-nowrap cursor-pointer ${
+                  activeTab === 'user-workspaces'
+                    ? 'bg-indigo-600 text-white font-black shadow-lg shadow-indigo-500/30'
+                    : 'text-indigo-300 hover:text-white hover:bg-slate-800 border border-indigo-500/50'
+                }`}
+              >
+                <span>🏛️ Citizen User Workspaces (72 Portals)</span>
               </button>
 
               <button
@@ -398,6 +422,18 @@ export default function App() {
 
         {activeTab === 'crypto-transparency' && (
           <CryptoTransparencyTokenView onOpenFileInViewer={handleOpenFileViewer} />
+        )}
+
+        {activeTab === 'broadsheet-newspaper' && (
+          <div className="max-w-7xl mx-auto px-4 py-4">
+            <BroadsheetNewspaperView onSelectTab={(t) => setActiveTab(t)} />
+          </div>
+        )}
+
+        {activeTab === 'user-workspaces' && (
+          <div className="max-w-7xl mx-auto px-4 py-4">
+            <UserWorkspacesHubView onSelectTab={(t) => setActiveTab(t)} />
+          </div>
         )}
 
         {activeTab === 'outreach' && (

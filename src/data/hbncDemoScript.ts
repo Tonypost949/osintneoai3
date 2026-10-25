@@ -4,6 +4,8 @@ export type AppViewportTab =
   | 'screener'
   | 'void-deals'
   | 'crypto-transparency'
+  | 'broadsheet-newspaper'
+  | 'user-workspaces'
   | 'outreach'
   | 'osint'
   | 'locker'

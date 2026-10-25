@@ -208,6 +208,34 @@ export const Header: React.FC<HeaderProps> = ({
         </button>
 
         <button
+          onClick={() => setActiveTab('broadsheet-newspaper')}
+          className={`flex items-center gap-2 px-3 py-2 rounded-t font-semibold text-xs transition-all whitespace-nowrap border-b-2 cursor-pointer ${
+            activeTab === 'broadsheet-newspaper'
+              ? 'bg-amber-600 text-slate-950 border-amber-400 font-black shadow'
+              : 'text-amber-300 hover:text-white border-transparent hover:bg-slate-900/40'
+          }`}
+        >
+          <span>🗞️ Broadsheet Newspaper</span>
+          <span className="bg-amber-500/20 text-amber-300 text-[10px] px-1.5 py-0.2 rounded font-mono font-bold">
+            TAX-FUNDED
+          </span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab('user-workspaces')}
+          className={`flex items-center gap-2 px-3 py-2 rounded-t font-semibold text-xs transition-all whitespace-nowrap border-b-2 cursor-pointer ${
+            activeTab === 'user-workspaces'
+              ? 'bg-indigo-600 text-white border-indigo-400 font-black shadow'
+              : 'text-indigo-300 hover:text-white border-transparent hover:bg-slate-900/40'
+          }`}
+        >
+          <span>🏛️ User Workspaces &amp; 72 Portals</span>
+          <span className="bg-indigo-500/20 text-indigo-200 text-[10px] px-1.5 py-0.2 rounded font-mono font-bold">
+            72 SITES
+          </span>
+        </button>
+
+        <button
           onClick={() => setActiveTab('screener')}
           className={`flex items-center gap-2 px-3 py-2 rounded-t font-semibold text-xs transition-all whitespace-nowrap border-b-2 cursor-pointer ${
             activeTab === 'screener'

@@ -26,6 +26,8 @@ import {
   Cpu,
   Bot,
   Network,
+  Briefcase,
+  Newspaper,
   Coins,
 } from 'lucide-react';
 import { AppViewportTab, CINEMATIC_DEMO_SCENES } from '../data/hbncDemoScript';
@@ -91,6 +93,8 @@ export const LeftSideCommandMenu: React.FC<LeftSideCommandMenuProps> = ({
     { id: 'master', label: 'Master Record & Timeline', icon: ShieldAlert, badge: '49× Cr(VI)' },
     { id: 'void-deals', label: 'Form 700 & 2 Void Deals', icon: Gavel, badge: '$326M Disgorgement' },
     { id: 'crypto-transparency', label: 'Transparency Token & Web3 Crypto', icon: Coins, badge: 'TFT · OSINT · PAT' },
+    { id: 'broadsheet-newspaper', label: 'The Tax-Funded Dispatch Broadsheet', icon: Newspaper, badge: 'Press Journal' },
+    { id: 'user-workspaces', label: 'User Workspaces & 72 Portals', icon: Briefcase, badge: '72 Sites / 6-Pane' },
     { id: 'ailaws', label: '/ailaws Statutory Proof Matrix', icon: Scale, badge: 'ADA & RCRA' },
     { id: 'screener', label: 'Victim Screener & Uploads', icon: UserCheck, badge: 'HBNC Victim #' },
     { id: 'integrations', label: '3D Plume, GIS & Studio Secrets', icon: Zap, badge: '6 Cores Live' },
