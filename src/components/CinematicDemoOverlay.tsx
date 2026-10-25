@@ -295,14 +295,14 @@ export const CinematicDemoOverlay: React.FC<CinematicDemoOverlayProps> = ({
     const nextIdx = (currentSceneIndex + 1) % CINEMATIC_DEMO_SCENES.length;
     const nextScene = CINEMATIC_DEMO_SCENES[nextIdx];
     if (nextScene) {
-      const nextNormalized = normalizeTextForSpeech(`${nextScene.title}. ${nextScene.narrative}`);
+      const nextNormalized = normalizeTextForSpeech(nextScene.narrative);
       const nextChunks = splitNarrativeIntoSpeechChunks(nextNormalized);
       if (nextChunks[0]) {
         preloadGeminiNeuralAudio(nextChunks[0], selectedVoice);
       }
     }
 
-    // 1. Attempt Gemini 3.8 Flash Neural Studio Audio (24kHz broadcast WAV via backend 5-key pool) across all chunks sequentially
+    // 1. Attempt Gemini 3.8 Flash Neural Studio Audio (24kHz broadcast WAV via backend 46-key pool) across all chunks sequentially
     try {
       for (let i = 0; i < speechChunks.length; i++) {
         if (sessionId !== narrationSessionIdRef.current) return;
@@ -331,7 +331,37 @@ export const CinematicDemoOverlay: React.FC<CinematicDemoOverlayProps> = ({
 
           audio.onended = () => resolve();
           audio.onerror = (err) => reject(err);
-          audio.play().catch(reject);
+
+          const startAudioPlayback = () => {
+            if (sessionId !== narrationSessionIdRef.current) {
+              resolve();
+              return;
+            }
+            const playPromise = audio.play();
+            if (playPromise !== undefined) {
+              playPromise.catch((playErr: any) => {
+                // If browser blocks autoplay before first user gesture, wait for first gesture to play the genuine deep Charon WAV instead of falling back to robotic speechSynthesis
+                if (
+                  playErr?.name === 'NotAllowedError' ||
+                  /interact|gesture|autoplay|NotAllowed/i.test(String(playErr?.message || playErr))
+                ) {
+                  const resumeOnGesture = () => {
+                    window.removeEventListener('pointerdown', resumeOnGesture, true);
+                    window.removeEventListener('keydown', resumeOnGesture, true);
+                    if (sessionId === narrationSessionIdRef.current && currentAudioElementRef.current === audio) {
+                      audio.play().catch(reject);
+                    }
+                  };
+                  window.addEventListener('pointerdown', resumeOnGesture, { once: true, capture: true });
+                  window.addEventListener('keydown', resumeOnGesture, { once: true, capture: true });
+                } else {
+                  reject(playErr);
+                }
+              });
+            }
+          };
+
+          startAudioPlayback();
         });
       }
 
@@ -358,8 +388,8 @@ export const CinematicDemoOverlay: React.FC<CinematicDemoOverlayProps> = ({
     if (!isActive || !voiceEnabled) return;
 
     const sessionId = narrationSessionIdRef.current;
-    // Speak ONLY the Act Title and Direct Data Narrative (no redundant "Act 06. Act 6:" or voice descriptions)
-    const narrationText = `${scene.title}. ${scene.narrative}`;
+    // Speak ONLY the Direct Data Narrative (never prepend scene.title or "Act X:")
+    const narrationText = scene.narrative;
     playStudioNarration(narrationText, sessionId);
 
     return () => {

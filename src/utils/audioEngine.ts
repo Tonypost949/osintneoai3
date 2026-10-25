@@ -121,6 +121,9 @@ export function normalizeTextForSpeech(rawText: string): string {
     .replace(/\b47\.5×\b/gi, 'forty-seven point five times')
     .replace(/\b3,310×\b/gi, 'three thousand three hundred ten times')
     // Acronyms and legal citations
+    .replace(/\bosintneoai\.me\b/gi, 'O S I N T Neo A I dot me')
+    .replace(/\bOSINT\b/g, 'O S I N T')
+    .replace(/\bOsint\b/g, 'O S I N T')
     .replace(/\bHBNC\b/g, 'H B N C')
     .replace(/\bEHR\b/g, 'electronic health record')
     .replace(/\bDTSC\b/g, 'D T S C')
