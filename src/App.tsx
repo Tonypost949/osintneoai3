@@ -406,12 +406,23 @@ export default function App() {
       {/* Footer: Hidden automatically during Fullscreen Demo Mode */}
       {!hideTopBarsInFullscreenDemo && (
         <footer className="bg-slate-950 border-t border-slate-800 text-xs text-slate-500 p-6 text-center font-mono">
+          <p className="mb-1 text-slate-300">
+            <b>https://osintneoai.me &middot; Main Portal for OSINT Neo AI, Live Investigation &amp; Legal Matrix &middot; Read-Only Master + Live .ZIP Incorporation</b>
+          </p>
           <p className="mb-1 text-slate-400">
-            <b>OSINT Neo AI &middot; Live Investigation &amp; Legal Matrix &middot; HBNC Case 3 &middot; Read-Only Master + Live .ZIP Incorporation</b>
+             Prepared by Relator Anthony Michael DiMarcello III and Elizabeth Tina Petruccio &middot; GAO #COMP-26-004512 &middot; FBI #20IC002 &middot; amd949609@gmail.com
           </p>
-          <p>
-            Prepared by Relator Anthony Michael DiMarcello III and Elizabeth Tina Petruccio &middot; GAO #COMP-26-004512 &middot; FBI #20IC002 &middot; amd949609@gmail.com
-          </p>
+          <div className="flex flex-wrap items-center justify-center gap-4 mt-2 text-[11px] text-cyan-400">
+            <a href="https://osintneoai.me" className="hover:underline">https://osintneoai.me (Main Site)</a>
+            <span>&middot;</span>
+            <a href="/architecture.html" className="hover:underline">/architecture.html (Web3 &amp; Sepolia Architecture)</a>
+            <span>&middot;</span>
+            <a href="/chat/" className="hover:underline">/chat/ (Investigator Workspace)</a>
+            <span>&middot;</span>
+            <a href="/HBNC_Case_Report.html" className="hover:underline">/HBNC_Case_Report.html (Static Court Report)</a>
+            <span>&middot;</span>
+            <a href="/ailaws.html" className="hover:underline">/ailaws.html (Standalone Legal Matrix)</a>
+          </div>
         </footer>
       )}
 

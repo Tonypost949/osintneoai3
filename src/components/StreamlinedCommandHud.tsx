@@ -56,7 +56,7 @@ export const StreamlinedCommandHud: React.FC<StreamlinedCommandHudProps> = ({
               <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-cyan-500"></span>
             </span>
             <span className="text-xs font-mono font-bold tracking-wider uppercase text-cyan-300">
-              FORENSIC COMMAND HUD // HBNC CASE 3 &middot; 10-ACT STUDIO ENGINE
+              OSINTNEOAI.ME // LIVE INVESTIGATION &amp; LEGAL MATRIX &middot; 10-ACT STUDIO ENGINE
             </span>
             <span className="hidden sm:inline text-slate-600">&middot;</span>
             <span className="text-[11px] font-mono text-slate-400 hidden sm:inline">

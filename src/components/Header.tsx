@@ -46,15 +46,19 @@ export const Header: React.FC<HeaderProps> = ({
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75"></span>
             <span className="relative inline-flex rounded-full h-3 w-3 bg-red-600"></span>
           </span>
+          <span className="font-extrabold uppercase tracking-wider text-cyan-300 font-mono">
+            OSINTNEOAI.ME
+          </span>
+          <span className="text-slate-400 hidden sm:inline">|</span>
           <span className="font-extrabold uppercase tracking-wider text-slate-200">
-            HBNC CASE 3 &amp; OSINT NEO AI
+            OSINT NEO AI &middot; LIVE INVESTIGATION &amp; LEGAL MATRIX
           </span>
           <span className="text-slate-400 hidden sm:inline">|</span>
           <span className="text-red-400 font-semibold hidden md:inline">
-            Active Federal Matter: <i>Knabb v. City of Huntington Beach</i> (8:26-cv-00348-JWH-ADS)
+            <i>Knabb v. City of Huntington Beach</i> (8:26-cv-00348-JWH-ADS)
           </span>
           <span className="bg-red-950/80 text-red-300 border border-red-800/60 px-2 py-0.5 rounded text-[11px] font-mono">
-            49× Cr(VI) Contamination
+            49× Cr(VI) &middot; 617 RICO Nodes
           </span>
         </div>
 
