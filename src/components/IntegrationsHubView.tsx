@@ -35,6 +35,8 @@ export const IntegrationsHubView: React.FC<IntegrationsHubViewProps> = ({
   const [activeSubTab, setActiveSubTab] = useState<'integrations' | '3d-plume' | 'gis-map'>('integrations');
   const [keyStatusData, setKeyStatusData] = useState<any>(null);
   const [isLoadingStatus, setIsLoadingStatus] = useState<boolean>(true);
+  const [newKeyInput, setNewKeyInput] = useState<string>('');
+  const [addKeyMessage, setAddKeyMessage] = useState<string | null>(null);
   const [pingResult, setPingResult] = useState<{
     testing: boolean;
     valid?: boolean;
@@ -72,6 +74,27 @@ export const IntegrationsHubView: React.FC<IntegrationsHubViewProps> = ({
       error: result.error,
       modelUsed: result.modelUsed,
     });
+  };
+
+  const handleAddAccountKeyToPool = async () => {
+    if (!newKeyInput.trim()) return;
+    try {
+      const res = await fetch('/api/keys/add', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ apiKey: newKeyInput.trim() }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setAddKeyMessage(`Added ${data.added} key(s) into the live osintneoai.me unified pool (${data.keyPoolCount} total active keys).`);
+        setNewKeyInput('');
+        fetchKeyStatus();
+      } else {
+        setAddKeyMessage(data.error || 'Failed to add key.');
+      }
+    } catch (err: any) {
+      setAddKeyMessage(err.message || 'Error adding key.');
+    }
   };
 
   return (
@@ -197,6 +220,44 @@ export const IntegrationsHubView: React.FC<IntegrationsHubViewProps> = ({
                 </div>
                 <span className="text-[10px] text-slate-400">Verified via /api/keys/test</span>
               </div>
+            )}
+
+            {/* Multi-Account Key Pool Under One Roof */}
+            <div className="mt-4 pt-4 border-t border-slate-800/80 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
+              <div className="space-y-1">
+                <div className="text-xs font-mono font-bold text-cyan-300">
+                  UNIFIED MULTI-ACCOUNT KEY POOL ({keyStatusData?.keyPoolCount || 5} ACTIVE KEYS LOADED UNDER ONE ROOF):
+                </div>
+                <div className="flex flex-wrap gap-1.5">
+                  {(keyStatusData?.maskedPool || []).map((item: any) => (
+                    <span
+                      key={item.index}
+                      className="px-2 py-0.5 rounded bg-slate-950 border border-emerald-500/40 text-emerald-300 text-[10px] font-mono"
+                    >
+                      Key #{item.index}: {item.masked}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <input
+                  type="password"
+                  value={newKeyInput}
+                  onChange={(e) => setNewKeyInput(e.target.value)}
+                  placeholder="Paste another account's Gemini API key..."
+                  className="bg-slate-950 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white font-mono w-64 outline-none focus:border-cyan-400"
+                />
+                <button
+                  onClick={handleAddAccountKeyToPool}
+                  className="px-3 py-1.5 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-mono font-bold cursor-pointer shrink-0"
+                >
+                  + Pool Key
+                </button>
+              </div>
+            </div>
+            {addKeyMessage && (
+              <div className="mt-2 text-xs font-mono text-emerald-300">{addKeyMessage}</div>
             )}
           </div>
 

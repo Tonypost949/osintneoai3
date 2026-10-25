@@ -17,7 +17,24 @@ import {
   Sparkles,
   CheckCircle2,
   MapPin,
+  Box,
+  BrainCircuit,
+  FlaskConical,
+  Layers,
 } from 'lucide-react';
+import {
+  EVIDENCE_GRAPH,
+  EVOLUTION_PHASES,
+  TOTAL_RICO_TRANSACTION_VOLUME,
+  CRITICAL_PATH_EDGES_COUNT,
+  GraphNode,
+} from '../data/evidenceGraphData';
+import { ThreeDimensionalTopology } from './ThreeDimensionalTopology';
+import { ScienceToxicologyPanel } from './ScienceToxicologyPanel';
+import { SearchGroundingPanel } from './SearchGroundingPanel';
+import { MapsGroundingPanel } from './MapsGroundingPanel';
+import { EvidentiaryImageGen } from './EvidentiaryImageGen';
+import { ThinkingAuditModal } from './ThinkingAuditModal';
 
 export type MaltegoNodeCategory =
   | 'victim'
@@ -629,6 +646,19 @@ export const MaltegoGraphView: React.FC<MaltegoGraphViewProps> = ({
   const [pan, setPan] = useState<{ x: number; y: number }>({ x: 20, y: 10 });
   const [isPhysicsActive, setIsPhysicsActive] = useState<boolean>(true);
 
+  // Unified osintneoai.me + AI Studio Companion Graph (afeb5657) Mode State
+  const [graphSectionMode, setGraphSectionMode] = useState<
+    'hbnc-canvas' | 'rico-617' | 'holo-3d' | 'grounding-science'
+  >('hbnc-canvas');
+  const [selectedRicoNode, setSelectedRicoNode] = useState<GraphNode>(
+    () =>
+      EVIDENCE_GRAPH.nodes.find((n) => n.id === 'CAMERON_LANE_HOLDINGS_LLC') ||
+      EVIDENCE_GRAPH.nodes[0]
+  );
+  const [ricoSearchQuery, setRicoSearchQuery] = useState<string>('');
+  const [ricoPhaseFilter, setRicoPhaseFilter] = useState<number | 'all'>('all');
+  const [isThinkingAuditOpen, setIsThinkingAuditOpen] = useState<boolean>(false);
+
   const draggingNodeIdRef = useRef<string | null>(null);
   const isPanningRef = useRef<boolean>(false);
   const lastMousePosRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
@@ -966,18 +996,364 @@ export const MaltegoGraphView: React.FC<MaltegoGraphViewProps> = ({
             <div className="flex items-center gap-2.5">
               <Network className="w-6 h-6 text-cyan-400" />
               <h2 className="text-xl sm:text-2xl font-extrabold text-white">
-                Interactive HTML5 Canvas Maltego Entity &amp; Evidentiary Link Graph
+                Unified <span className="text-cyan-400">osintneoai.me</span> Forensic Graph Intelligence &amp; Maltego Topology Hub
               </h2>
             </div>
             <span className="text-xs font-mono bg-cyan-950 text-cyan-300 border border-cyan-700 px-3 py-1 rounded-full font-bold">
-              15 Forensic Nodes &middot; 18 Verified Causal Links &middot; Live Exhibit Preview
+              617 RICO Entities &middot; 72 Links &middot; 15 HBNC Nodes &middot; 3D Holo-Chamber Under One Roof
             </span>
           </div>
-          <p className="text-slate-300 text-xs sm:text-sm leading-relaxed">
-            Drag any entity node, filter by forensic chain (<b>Toxic Exposure</b>, <b>Form 700 Void Deals</b>, or <b>ICU Lockout &amp; Retaliation</b>), and click any node to inspect its primary exhibit image, statutory predicates, and Federal Rule of Evidence 201 links.
+          <p className="text-slate-300 text-xs sm:text-sm leading-relaxed mb-4">
+            Unifies the <b>HBNC Case 3 Maltego Evidentiary Graph</b> (<code>228a1243-262c-49d0-8c16-587b6cb152a0</code>) and the <b>617-Entity / 72-Link RICO Enterprise Graph Section</b> (<code>afeb5657-9d91-438c-9ebc-31ff7439de0b</code>) under one unified <b>osintneoai.me</b> system and multi-account API key pool.
           </p>
+
+          {/* Unified Graph Section Mode Bar */}
+          <div className="flex flex-wrap items-center justify-between gap-2 pt-3 border-t border-slate-800">
+            <div className="flex flex-wrap items-center gap-1.5">
+              <button
+                onClick={() => setGraphSectionMode('hbnc-canvas')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-mono font-bold flex items-center gap-1.5 cursor-pointer transition-all ${
+                  graphSectionMode === 'hbnc-canvas'
+                    ? 'bg-cyan-600 text-white shadow-lg ring-1 ring-cyan-300'
+                    : 'bg-slate-950 text-slate-300 hover:bg-slate-800 border border-slate-800'
+                }`}
+              >
+                <Network className="w-3.5 h-3.5" />
+                <span>1. HBNC Case 3 Maltego Canvas (15 Nodes / 18 Links)</span>
+              </button>
+
+              <button
+                onClick={() => setGraphSectionMode('rico-617')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-mono font-bold flex items-center gap-1.5 cursor-pointer transition-all ${
+                  graphSectionMode === 'rico-617'
+                    ? 'bg-amber-500 text-slate-950 shadow-lg ring-1 ring-amber-300'
+                    : 'bg-slate-950 text-amber-300 hover:bg-slate-800 border border-amber-500/40'
+                }`}
+              >
+                <Layers className="w-3.5 h-3.5" />
+                <span>2. osintneoai.me 617-Entity RICO Topology &amp; Chokepoints</span>
+              </button>
+
+              <button
+                onClick={() => setGraphSectionMode('holo-3d')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-mono font-bold flex items-center gap-1.5 cursor-pointer transition-all ${
+                  graphSectionMode === 'holo-3d'
+                    ? 'bg-purple-600 text-white shadow-lg ring-1 ring-purple-300'
+                    : 'bg-slate-950 text-purple-300 hover:bg-slate-800 border border-purple-500/40'
+                }`}
+              >
+                <Box className="w-3.5 h-3.5" />
+                <span>3. 3D Spatial Holo-Chamber (Three.js)</span>
+              </button>
+
+              <button
+                onClick={() => setGraphSectionMode('grounding-science')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-mono font-bold flex items-center gap-1.5 cursor-pointer transition-all ${
+                  graphSectionMode === 'grounding-science'
+                    ? 'bg-emerald-600 text-white shadow-lg ring-1 ring-emerald-300'
+                    : 'bg-slate-950 text-emerald-300 hover:bg-slate-800 border border-emerald-500/40'
+                }`}
+              >
+                <FlaskConical className="w-3.5 h-3.5" />
+                <span>4. Live Search/Maps Grounding, 4K Diagram &amp; PubChem</span>
+              </button>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-1.5">
+              <button
+                onClick={() => setIsThinkingAuditOpen(true)}
+                className="px-3 py-1.5 rounded-lg bg-purple-950 hover:bg-purple-900 border border-purple-500/60 text-purple-200 text-xs font-mono font-bold flex items-center gap-1.5 cursor-pointer"
+              >
+                <BrainCircuit className="w-3.5 h-3.5 text-purple-400" />
+                <span>High-Thinking RICO Audit</span>
+              </button>
+              <a
+                href="https://aistudio.google.com/apps/afeb5657-9d91-438c-9ebc-31ff7439de0b?showPreview=true&showAssistant=true"
+                target="_blank"
+                rel="noreferrer"
+                className="px-2.5 py-1.5 rounded-lg bg-slate-950 hover:bg-slate-800 border border-slate-700 text-cyan-300 text-[11px] font-mono flex items-center gap-1"
+                title="Open Companion AI Studio Graph App afeb5657-9d91-438c-9ebc-31ff7439de0b"
+              >
+                <ExternalLink className="w-3 h-3" />
+                <span>AI Studio afeb5657</span>
+              </a>
+            </div>
+          </div>
         </div>
       )}
+
+      {/* MODE 2: 617-ENTITY / 72-LINK OSINTNEOAI.ME RICO TOPOLOGY & CHOKEPOINT REGISTRY */}
+      {!embedded && graphSectionMode === 'rico-617' && (
+        <div className="space-y-5 mb-6">
+          {/* Top Metrics Banner from afeb5657 */}
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 font-mono text-xs">
+            <div className="bg-slate-900 border border-amber-500/50 rounded-xl p-3.5">
+              <div className="text-[10px] text-amber-400 uppercase font-bold">Total Graph Entities</div>
+              <div className="text-2xl font-black text-white mt-0.5">{EVIDENCE_GRAPH.nodes.length}</div>
+              <div className="text-[10px] text-slate-400">Shell LLCs, Trusts, Permits &amp; Officials</div>
+            </div>
+            <div className="bg-slate-900 border border-cyan-500/50 rounded-xl p-3.5">
+              <div className="text-[10px] text-cyan-400 uppercase font-bold">Evidentiary Edges</div>
+              <div className="text-2xl font-black text-white mt-0.5">{EVIDENCE_GRAPH.edges.length}</div>
+              <div className="text-[10px] text-slate-400">{CRITICAL_PATH_EDGES_COUNT} Critical Path Links</div>
+            </div>
+            <div className="bg-slate-900 border border-red-500/50 rounded-xl p-3.5">
+              <div className="text-[10px] text-red-400 uppercase font-bold">Top Chokepoint #1</div>
+              <div className="text-lg font-black text-red-300 mt-0.5">53.85% BC</div>
+              <div className="text-[10px] text-slate-300 truncate">CAMERON_LANE_HOLDINGS_LLC</div>
+            </div>
+            <div className="bg-slate-900 border border-rose-500/50 rounded-xl p-3.5">
+              <div className="text-[10px] text-rose-400 uppercase font-bold">Top Chokepoint #2</div>
+              <div className="text-lg font-black text-rose-300 mt-0.5">51.28% BC</div>
+              <div className="text-[10px] text-slate-300 truncate">APN_PERMIT_HB_2024_081</div>
+            </div>
+            <div className="bg-slate-900 border border-emerald-500/50 rounded-xl p-3.5 col-span-2 sm:col-span-1">
+              <div className="text-[10px] text-emerald-400 uppercase font-bold">RICO Flow Volume</div>
+              <div className="text-lg font-black text-emerald-300 mt-0.5">
+                ${(TOTAL_RICO_TRANSACTION_VOLUME / 1_000_000).toFixed(1)}M
+              </div>
+              <div className="text-[10px] text-slate-400">6 Temporal Evolution Phases</div>
+            </div>
+          </div>
+
+          {/* 6 Evolution Phases Filter Strip */}
+          <div className="bg-slate-900 border border-slate-800 rounded-xl p-3.5">
+            <div className="flex flex-wrap items-center justify-between gap-2 mb-2.5">
+              <span className="text-xs font-mono font-bold text-amber-300 uppercase">
+                6-Phase Temporal Evolution Scrubber (2012–2026):
+              </span>
+              <input
+                type="text"
+                value={ricoSearchQuery}
+                onChange={(e) => setRicoSearchQuery(e.target.value)}
+                placeholder="Search all 617 entities (e.g., Cameron, Trust, Permit, Nest Seekers)..."
+                className="bg-slate-950 border border-slate-700 rounded-lg px-3 py-1 text-xs text-white w-64 sm:w-80 outline-none focus:border-cyan-400"
+              />
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-7 gap-1.5 font-mono text-[11px]">
+              <button
+                onClick={() => setRicoPhaseFilter('all')}
+                className={`p-2 rounded-lg border text-left cursor-pointer ${
+                  ricoPhaseFilter === 'all'
+                    ? 'bg-amber-500 text-slate-950 font-bold border-amber-300'
+                    : 'bg-slate-950 text-slate-300 border-slate-800 hover:bg-slate-800'
+                }`}
+              >
+                <div className="font-extrabold">ALL PHASES</div>
+                <div className="text-[10px] opacity-80">617 Entities</div>
+              </button>
+              {EVOLUTION_PHASES.map((ph) => (
+                <button
+                  key={ph.id}
+                  onClick={() => setRicoPhaseFilter(ph.phase)}
+                  className={`p-2 rounded-lg border text-left cursor-pointer ${
+                    ricoPhaseFilter === ph.phase
+                      ? 'bg-cyan-500 text-slate-950 font-bold border-cyan-300'
+                      : 'bg-slate-950 text-slate-300 border-slate-800 hover:bg-slate-800'
+                  }`}
+                >
+                  <div className="font-extrabold">Phase {ph.phase} ({ph.label})</div>
+                  <div className="text-[10px] truncate opacity-85">{ph.title}</div>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Split View: Top Chokepoints & Searchable 617-Entity Registry + Selected Entity Dossier */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+            <div className="lg:col-span-7 bg-slate-900 border border-slate-800 rounded-xl p-4 max-h-[560px] overflow-y-auto space-y-2">
+              <div className="text-xs font-mono font-bold text-cyan-300 uppercase mb-2 flex items-center justify-between">
+                <span>617-Entity RICO Topology Registry (Sorted by Betweenness Centrality)</span>
+                <span className="text-slate-400">Click any entity to inspect</span>
+              </div>
+              {EVIDENCE_GRAPH.nodes
+                .filter((n) => {
+                  const matchesPhase = ricoPhaseFilter === 'all' || n.phase === ricoPhaseFilter;
+                  const matchesQuery =
+                    !ricoSearchQuery ||
+                    n.label.toLowerCase().includes(ricoSearchQuery.toLowerCase()) ||
+                    n.id.toLowerCase().includes(ricoSearchQuery.toLowerCase()) ||
+                    (n.community_label || '').toLowerCase().includes(ricoSearchQuery.toLowerCase());
+                  return matchesPhase && matchesQuery;
+                })
+                .sort((a, b) => b.betweenness_centrality - a.betweenness_centrality)
+                .slice(0, 120)
+                .map((node) => {
+                  const isSel = selectedRicoNode?.id === node.id;
+                  const bcPct = (node.betweenness_centrality * 100).toFixed(2);
+                  return (
+                    <div
+                      key={node.id}
+                      onClick={() => setSelectedRicoNode(node)}
+                      className={`p-2.5 rounded-lg border flex items-center justify-between gap-2 cursor-pointer transition-all ${
+                        isSel
+                          ? 'bg-cyan-950/90 border-cyan-400 text-white shadow'
+                          : 'bg-slate-950/80 border-slate-800/80 text-slate-300 hover:border-slate-700'
+                      }`}
+                    >
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-bold text-white truncate">{node.label}</span>
+                          <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-900 text-cyan-300 border border-slate-700">
+                            {node.type}
+                          </span>
+                        </div>
+                        <div className="text-[11px] font-mono text-slate-400 truncate">
+                          {node.community_label} &middot; Phase {node.phase} ({node.occurrenceDate})
+                        </div>
+                      </div>
+                      <div className="text-right font-mono shrink-0">
+                        <div className="text-xs font-extrabold text-amber-300">BC: {bcPct}%</div>
+                        <div className="text-[10px] text-slate-400">
+                          Deg: {(node.degree_centrality * 100).toFixed(1)}%
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+            </div>
+
+            <div className="lg:col-span-5 bg-slate-900 border border-cyan-500/50 rounded-xl p-4 flex flex-col justify-between">
+              {selectedRicoNode && (
+                <div className="space-y-3">
+                  <div className="flex items-start justify-between gap-2 border-b border-slate-800 pb-3">
+                    <div>
+                      <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-950 text-amber-300 border border-amber-600/50 font-bold">
+                        {selectedRicoNode.type} &middot; PHASE {selectedRicoNode.phase}
+                      </span>
+                      <h3 className="text-lg font-extrabold text-white mt-1.5">{selectedRicoNode.label}</h3>
+                      <p className="text-xs font-mono text-cyan-300">{selectedRicoNode.community_label}</p>
+                    </div>
+                    <span className="px-2 py-1 rounded bg-red-950 text-red-300 border border-red-700/60 text-[10px] font-mono font-bold">
+                      {selectedRicoNode.risk_level || 'CRITICAL'}
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-2 font-mono text-xs">
+                    <div className="bg-slate-950 p-2.5 rounded border border-slate-800">
+                      <div className="text-[10px] text-slate-400">Betweenness (BC)</div>
+                      <div className="text-sm font-black text-amber-300">
+                        {(selectedRicoNode.betweenness_centrality * 100).toFixed(2)}%
+                      </div>
+                    </div>
+                    <div className="bg-slate-950 p-2.5 rounded border border-slate-800">
+                      <div className="text-[10px] text-slate-400">Degree Centrality</div>
+                      <div className="text-sm font-black text-cyan-300">
+                        {(selectedRicoNode.degree_centrality * 100).toFixed(2)}%
+                      </div>
+                    </div>
+                    <div className="bg-slate-950 p-2.5 rounded border border-slate-800">
+                      <div className="text-[10px] text-slate-400">Clustering Coeff</div>
+                      <div className="text-sm font-black text-emerald-300">
+                        {selectedRicoNode.clustering_coefficient ?? 0.52}
+                      </div>
+                    </div>
+                  </div>
+
+                  {selectedRicoNode.details?.role_description && (
+                    <p className="text-xs text-slate-200 leading-relaxed bg-slate-950 p-3 rounded-lg border border-slate-800">
+                      {selectedRicoNode.details.role_description}
+                    </p>
+                  )}
+
+                  {selectedRicoNode.details?.legal_liability && selectedRicoNode.details.legal_liability.length > 0 && (
+                    <div>
+                      <div className="text-[11px] font-mono font-bold text-amber-400 uppercase mb-1">
+                        Statutory &amp; RICO Predicate Exposure:
+                      </div>
+                      <div className="flex flex-wrap gap-1.5">
+                        {selectedRicoNode.details.legal_liability.map((law, idx) => (
+                          <span
+                            key={idx}
+                            className="px-2 py-0.5 rounded bg-slate-950 border border-amber-500/40 text-amber-200 text-[11px] font-mono"
+                          >
+                            {law}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  <div>
+                    <div className="text-[11px] font-mono font-bold text-cyan-400 uppercase mb-1">
+                      Connected Evidentiary Links ({
+                        EVIDENCE_GRAPH.edges.filter(
+                          (e) => e.source === selectedRicoNode.id || e.target === selectedRicoNode.id
+                        ).length
+                      }):
+                    </div>
+                    <div className="max-h-44 overflow-y-auto space-y-1.5 pr-1">
+                      {EVIDENCE_GRAPH.edges
+                        .filter((e) => e.source === selectedRicoNode.id || e.target === selectedRicoNode.id)
+                        .map((edge, idx) => (
+                          <div
+                            key={idx}
+                            className="p-2 rounded bg-slate-950 border border-slate-800 text-[11px] font-mono flex items-center justify-between gap-2"
+                          >
+                            <div className="truncate text-slate-200">
+                              <span className="text-cyan-400 font-bold">{edge.relation}</span>:{' '}
+                              {edge.source === selectedRicoNode.id ? edge.target : edge.source}
+                            </div>
+                            {edge.transaction_volume_formatted && (
+                              <span className="text-emerald-300 font-bold shrink-0">
+                                {edge.transaction_volume_formatted}
+                              </span>
+                            )}
+                          </div>
+                        ))}
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={() => setIsThinkingAuditOpen(true)}
+                    className="w-full py-2.5 px-4 rounded-lg bg-purple-600 hover:bg-purple-500 text-white font-mono font-bold text-xs flex items-center justify-center gap-2 cursor-pointer shadow-lg"
+                  >
+                    <BrainCircuit className="w-4 h-4" />
+                    <span>Run Gemini 4 Argon High-Thinking Audit on {selectedRicoNode.label}</span>
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODE 3: 3D SPATIAL HOLO-CHAMBER (FROM COMPANION APP AFEB5657) */}
+      {!embedded && graphSectionMode === 'holo-3d' && (
+        <div className="mb-6 bg-slate-950 border-2 border-purple-500/60 rounded-xl overflow-hidden shadow-2xl h-[640px]">
+          <ThreeDimensionalTopology
+            onSelectNode={(node) => {
+              setSelectedRicoNode(node);
+            }}
+          />
+        </div>
+      )}
+
+      {/* MODE 4: LIVE SEARCH GROUNDING, MAPS GROUNDING, 4K DIAGRAM GEN & PUBCHEM TOXICOLOGY */}
+      {!embedded && graphSectionMode === 'grounding-science' && (
+        <div className="space-y-6 mb-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
+              <SearchGroundingPanel />
+            </div>
+            <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
+              <MapsGroundingPanel />
+            </div>
+          </div>
+          <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
+            <ScienceToxicologyPanel />
+          </div>
+          <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
+            <EvidentiaryImageGen />
+          </div>
+        </div>
+      )}
+
+      <ThinkingAuditModal
+        isOpen={isThinkingAuditOpen}
+        onClose={() => setIsThinkingAuditOpen(false)}
+        focusNode={selectedRicoNode?.label || selectedNode?.label}
+      />
 
       {/* Control Bar */}
       <div className="bg-slate-900 border border-slate-800 rounded-xl p-3 mb-4 flex flex-wrap items-center justify-between gap-2 text-xs">

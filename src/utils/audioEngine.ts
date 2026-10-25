@@ -1,6 +1,9 @@
-// High-Definition Studio Neural AI Audio Engine powered by Gemini 3.8 Flash TTS & Multi-Key Rotation
+// High-Definition Studio Neural AI Audio Engine — Permanently Locked to Deep 'Charon' Voice
+// Powered by Gemini 3.8 Flash Lite TTS (24kHz WAV) & Unified Multi-Account Key Pool
 
 export type StudioVoicePersona = 'Charon' | 'Fenrir' | 'Kore' | 'Zephyr' | 'Aoede' | 'Puck';
+
+export const LOCKED_STUDIO_VOICE: StudioVoicePersona = 'Charon';
 
 export interface PersonaProfile {
   id: StudioVoicePersona;
@@ -12,73 +15,49 @@ export interface PersonaProfile {
   preferredVoices: string[];
 }
 
+const CHARON_DEEP_PROFILE: PersonaProfile = {
+  id: 'Charon',
+  label: 'Charon (Locked Deep Documentary Voice)',
+  badge: '🔒 Locked Deep Voice',
+  desc: 'Deep, authoritative investigative documentary narrator with measured studio gravitas and crystal-clear articulation',
+  rateMultiplier: 0.95,
+  pitch: 0.90,
+  preferredVoices: [
+    'Google UK English Male',
+    'Microsoft Guy Online',
+    'Microsoft Christopher Online',
+    'Microsoft Eric Online',
+    'Guy',
+    'Daniel',
+    'David',
+    'Male',
+    'Natural',
+    'Neural',
+    'en-GB',
+    'en-US',
+  ],
+};
+
+// All persona lookups resolve to the locked deep Charon profile so the voice can never drift or be changed
 export const STUDIO_PERSONAS: Record<StudioVoicePersona, PersonaProfile> = {
-  Charon: {
-    id: 'Charon',
-    label: 'Charon (Deep Studio Documentary)',
-    badge: '🎬 Studio Neural',
-    desc: 'Deep, authoritative investigative documentary narrator with measured studio gravitas and crystal-clear articulation',
-    rateMultiplier: 0.96,
-    pitch: 0.92,
-    preferredVoices: ['Guy', 'Andrew', 'Brian', 'Christopher', 'David', 'Natural', 'Neural', 'en-US'],
-  },
-  Fenrir: {
-    id: 'Fenrir',
-    label: 'Fenrir (Federal Prosecutor)',
-    badge: '🏛️ Courtroom',
-    desc: 'Commanding, solemn federal courtroom baritone for statutory indictment and strict disgorgement arguments',
-    rateMultiplier: 0.94,
-    pitch: 0.88,
-    preferredVoices: ['Eric', 'Roger', 'Ryan', 'Guy', 'Natural', 'Neural', 'en-US'],
-  },
-  Kore: {
-    id: 'Kore',
-    label: 'Kore (Appellate Briefing Lead)',
-    badge: '🛡️ Appellate',
-    desc: 'Warm, composed, natural human executive briefing voice for judicial and agency intake review',
-    rateMultiplier: 0.98,
-    pitch: 1.0,
-    preferredVoices: ['Ava', 'Aria', 'Jenny', 'Emma', 'Michelle', 'Natural', 'Neural', 'en-US'],
-  },
-  Aoede: {
-    id: 'Aoede',
-    label: 'Aoede (Clinical & Civil Rights)',
-    badge: '🏥 Clinical',
-    desc: 'Expressive, high-clarity medical and civil rights documentary voice for Scripps Mercy EHR and ADA findings',
-    rateMultiplier: 0.97,
-    pitch: 1.0,
-    preferredVoices: ['Aria', 'Jenny', 'Sonia', 'Natural', 'Neural', 'en-US'],
-  },
-  Zephyr: {
-    id: 'Zephyr',
-    label: 'Zephyr (Network Investigative)',
-    badge: '📡 Broadcast',
-    desc: 'Polished broadcast journalism anchor for public release and national investigative reporting',
-    rateMultiplier: 1.0,
-    pitch: 0.98,
-    preferredVoices: ['Christopher', 'Steffan', 'Andrew', 'Natural', 'en-US'],
-  },
-  Puck: {
-    id: 'Puck',
-    label: 'Puck (Rapid OSINT Analyst)',
-    badge: '⚡ OSINT',
-    desc: 'Crisp, fast-paced technical intelligence analyst for Maltego graph and GeoTracker telemetry',
-    rateMultiplier: 1.04,
-    pitch: 1.0,
-    preferredVoices: ['Brian', 'Guy', 'Natural', 'en-US'],
-  },
+  Charon: CHARON_DEEP_PROFILE,
+  Fenrir: CHARON_DEEP_PROFILE,
+  Kore: CHARON_DEEP_PROFILE,
+  Aoede: CHARON_DEEP_PROFILE,
+  Zephyr: CHARON_DEEP_PROFILE,
+  Puck: CHARON_DEEP_PROFILE,
 };
 
 // Memory cache for synthesized Gemini Studio 24kHz audio WAVs
 const ttsAudioCache = new Map<string, string>();
 
-// Calls the backend /api/tts endpoint powered by Gemini 3.8 Flash TTS across the 5-key pool
+// Calls the backend /api/tts endpoint — always locked to 'Charon' deep voice
 export async function fetchGeminiNeuralAudio(
   text: string,
-  voice: StudioVoicePersona = 'Charon'
+  _voice: StudioVoicePersona = LOCKED_STUDIO_VOICE
 ): Promise<string | null> {
   const normalized = normalizeTextForSpeech(text);
-  const cacheKey = `${voice}:::v2:::${normalized}`;
+  const cacheKey = `Charon:::deep_locked_v1:::${normalized}`;
   if (ttsAudioCache.has(cacheKey)) {
     return ttsAudioCache.get(cacheKey)!;
   }
@@ -89,7 +68,8 @@ export async function fetchGeminiNeuralAudio(
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         text: normalized,
-        voice,
+        voice: LOCKED_STUDIO_VOICE,
+        voiceName: LOCKED_STUDIO_VOICE,
       }),
     });
 
@@ -103,7 +83,7 @@ export async function fetchGeminiNeuralAudio(
     }
     return null;
   } catch (err) {
-    console.warn('Gemini Studio Neural TTS fetch failed, using calibrated speech fallback:', err);
+    console.warn('Gemini Studio Neural TTS fetch failed, using calibrated deep speech fallback:', err);
     return null;
   }
 }
@@ -111,9 +91,9 @@ export async function fetchGeminiNeuralAudio(
 // Pre-warms the next act's neural audio in background so transitions are zero-latency
 export function preloadGeminiNeuralAudio(
   text: string,
-  voice: StudioVoicePersona = 'Charon'
+  _voice: StudioVoicePersona = LOCKED_STUDIO_VOICE
 ): void {
-  fetchGeminiNeuralAudio(text, voice).catch(() => {});
+  fetchGeminiNeuralAudio(text, LOCKED_STUDIO_VOICE).catch(() => {});
 }
 
 // Normalizes legal, toxicological, number-padding, and case terms for human-quality articulation
@@ -217,14 +197,14 @@ export function playCyberChime(pitchModifier: number = 0.9): void {
   }
 }
 
-// Finds the most natural neural voice for browser speech fallback
+// Finds the deepest natural male neural voice for browser speech fallback (locked to Charon profile)
 export function getBestVoiceForPersona(
-  personaId: StudioVoicePersona,
+  _personaId: StudioVoicePersona,
   availableVoices: SpeechSynthesisVoice[]
 ): SpeechSynthesisVoice | undefined {
   if (!availableVoices || availableVoices.length === 0) return undefined;
 
-  const profile = STUDIO_PERSONAS[personaId] || STUDIO_PERSONAS.Charon;
+  const profile = CHARON_DEEP_PROFILE;
 
   for (const namePattern of profile.preferredVoices) {
     const regex = new RegExp(namePattern, 'i');

@@ -333,35 +333,12 @@ export const LeftSideCommandMenu: React.FC<LeftSideCommandMenuProps> = ({
               </div>
             </div>
 
-            {/* Studio Voice Persona */}
-            <div className="mb-3">
-              <div className="flex items-center justify-between text-[10px] text-slate-400 font-mono mb-1">
-                <span>Studio Voice (Gemini TTS):</span>
-                <span className="text-amber-300 font-bold">{selectedVoice} (24kHz WAV)</span>
+            {/* Studio Voice Persona — Permanently Locked to Deep Documentary Voice */}
+            <div className="mb-3 bg-slate-950 border border-emerald-500/40 rounded-lg p-2.5">
+              <div className="flex items-center justify-between text-[10px] font-mono">
+                <span className="text-slate-300">Studio Narrator Voice:</span>
+                <span className="text-emerald-300 font-bold">🔒 Deep Voice Locked (24kHz WAV)</span>
               </div>
-              <div className="grid grid-cols-4 gap-1 font-mono text-[11px] mb-2">
-                {(['Charon', 'Fenrir', 'Kore', 'Zephyr'] as const).map((v) => (
-                  <button
-                    key={v}
-                    onClick={() => onChangeVoice(v)}
-                    className={`py-1 rounded text-center transition-all cursor-pointer ${
-                      selectedVoice === v
-                        ? 'bg-amber-500 text-slate-950 font-bold shadow'
-                        : 'bg-slate-950 text-slate-400 hover:text-white border border-slate-800'
-                    }`}
-                  >
-                    {v}
-                  </button>
-                ))}
-              </div>
-
-              <button
-                onClick={onTestVoice}
-                className="w-full py-1.5 px-2.5 rounded bg-emerald-950 hover:bg-emerald-900 border border-emerald-500/60 text-emerald-300 text-[11px] font-mono font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer"
-              >
-                <Volume2 className="w-3.5 h-3.5 text-emerald-400" />
-                <span>Test Studio Voice Narration Now</span>
-              </button>
             </div>
 
             {/* Demo Play/Pause & Fullscreen Cinema */}

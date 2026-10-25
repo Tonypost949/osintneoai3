@@ -88,7 +88,7 @@ export const CinematicDemoOverlay: React.FC<CinematicDemoOverlayProps> = ({
   onOpenFileInViewer,
 }) => {
   const [voiceEnabled, setVoiceEnabled] = useState<boolean>(true);
-  const [selectedVoice, setSelectedVoice] = useState<StudioVoicePersona>('Charon');
+  const selectedVoice: StudioVoicePersona = 'Charon';
   const [showControlsDrawer, setShowControlsDrawer] = useState<boolean>(false);
   const [demoMenuHidden, setDemoMenuHidden] = useState<boolean>(false);
   const [showClosedCaptions, setShowClosedCaptions] = useState<boolean>(true);
@@ -353,14 +353,6 @@ export const CinematicDemoOverlay: React.FC<CinematicDemoOverlayProps> = ({
     }
   };
 
-  const handleTestVoice = (persona: StudioVoicePersona) => {
-    setSelectedVoice(persona);
-    stopCurrentAudio();
-    const sessionId = narrationSessionIdRef.current;
-    const testIntro = `17631 Cameron Lane soil tested at 980 micrograms per kilogram of Hexavalent Chromium, 49 times the state residential limit. Elizabeth Petruccio and Anthony DiMarcello's primary hospital and contract exhibits are active on screen.`;
-    playStudioNarration(testIntro, sessionId);
-  };
-
   useEffect(() => {
     stopCurrentAudio();
     if (!isActive || !voiceEnabled) return;
@@ -373,7 +365,7 @@ export const CinematicDemoOverlay: React.FC<CinematicDemoOverlayProps> = ({
     return () => {
       stopCurrentAudio();
     };
-  }, [currentSceneIndex, isActive, voiceEnabled, selectedVoice, playbackSpeed]);
+  }, [currentSceneIndex, isActive, voiceEnabled, playbackSpeed]);
 
   if (!isActive) return null;
 
@@ -756,28 +748,16 @@ export const CinematicDemoOverlay: React.FC<CinematicDemoOverlayProps> = ({
                     <span>{voiceEnabled ? 'Voice ON' : 'Muted'}</span>
                   </button>
 
-                  {/* Live Equalizer + Studio Neural Voice Selector */}
+                  {/* Live Equalizer (Deep Voice Permanently Locked) */}
                   {voiceEnabled && (
-                    <div className="hidden sm:flex items-center gap-[0.35em] bg-slate-900 border border-slate-800 px-[0.55em] py-[0.25em] rounded-lg">
-                      <div className="flex items-end gap-[2px] h-[1em] px-[0.1em]" title={isCurrentlySpeaking ? 'Studio Neural Voice speaking' : 'Speech idle'}>
+                    <div className="hidden sm:flex items-center gap-[0.35em] bg-slate-900 border border-slate-800 px-[0.55em] py-[0.35em] rounded-lg">
+                      <div className="flex items-end gap-[2px] h-[1em] px-[0.1em]" title={isCurrentlySpeaking ? 'Locked Deep Voice speaking' : 'Speech idle'}>
                         <span className={`w-[2px] rounded-full bg-cyan-400 transition-all ${isCurrentlySpeaking ? 'animate-bounce h-[0.9em]' : 'h-[0.25em] opacity-40'}`} style={{ animationDuration: '0.6s' }} />
                         <span className={`w-[2px] rounded-full bg-cyan-300 transition-all ${isCurrentlySpeaking ? 'animate-bounce h-[0.6em]' : 'h-[0.4em] opacity-40'}`} style={{ animationDuration: '0.45s' }} />
                         <span className={`w-[2px] rounded-full bg-amber-400 transition-all ${isCurrentlySpeaking ? 'animate-bounce h-[1em]' : 'h-[0.2em] opacity-40'}`} style={{ animationDuration: '0.7s' }} />
                         <span className={`w-[2px] rounded-full bg-red-400 transition-all ${isCurrentlySpeaking ? 'animate-bounce h-[0.8em]' : 'h-[0.3em] opacity-40'}`} style={{ animationDuration: '0.5s' }} />
                         <span className={`w-[2px] rounded-full bg-emerald-400 transition-all ${isCurrentlySpeaking ? 'animate-bounce h-[0.7em]' : 'h-[0.2em] opacity-40'}`} style={{ animationDuration: '0.65s' }} />
                       </div>
-
-                      <span className="text-[0.85em] font-mono font-bold text-amber-300 shrink-0">
-                        {STUDIO_PERSONAS[selectedVoice]?.label.split(' ')[0] || 'Charon'}
-                      </span>
-
-                      <button
-                        onClick={() => handleTestVoice(selectedVoice)}
-                        className="px-[0.45em] py-[0.15em] rounded bg-cyan-950 hover:bg-cyan-900 border border-cyan-500/50 text-[0.8em] font-mono text-cyan-200 hover:text-white cursor-pointer transition-all shrink-0"
-                        title="Test Gemini 3.8 Flash Studio Neural Voice"
-                      >
-                        🔊 Test
-                      </button>
                     </div>
                   )}
                 </div>
@@ -1001,42 +981,6 @@ export const CinematicDemoOverlay: React.FC<CinematicDemoOverlayProps> = ({
                         </button>
                       ))}
                     </div>
-
-                    {voiceEnabled && (
-                      <div className="flex items-center gap-[0.35em]">
-                        <span className="text-[0.8em] font-mono text-slate-400 hidden lg:inline">Voice:</span>
-                        <div className="flex items-center gap-[0.25em]">
-                          {(['Charon', 'Fenrir', 'Kore', 'Aoede', 'Zephyr'] as const).map((p) => {
-                            const isP = selectedVoice === p;
-                            return (
-                              <button
-                                key={p}
-                                onClick={() => handleTestVoice(p)}
-                                className={`px-[0.45em] py-[0.15em] rounded text-[0.8em] font-mono cursor-pointer transition-all ${
-                                  isP
-                                    ? 'bg-amber-500 text-slate-950 font-bold shadow'
-                                    : 'bg-slate-900 text-slate-400 hover:text-white border border-slate-800'
-                                }`}
-                                title={`Switch Studio Voice to ${STUDIO_PERSONAS[p].label}`}
-                              >
-                                {p}
-                              </button>
-                            );
-                          })}
-                        </div>
-                        <select
-                          value={selectedVoice}
-                          onChange={(e) => handleTestVoice(e.target.value as StudioVoicePersona)}
-                          className="bg-slate-900 text-emerald-300 text-[0.84em] font-mono px-[0.45em] py-[0.2em] rounded border border-slate-700 outline-none cursor-pointer"
-                        >
-                          {Object.values(STUDIO_PERSONAS).map((v) => (
-                            <option key={v.id} value={v.id} className="bg-slate-950 text-slate-100">
-                              {v.label}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                    )}
                   </div>
                 </div>
               </div>

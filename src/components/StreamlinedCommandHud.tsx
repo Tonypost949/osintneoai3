@@ -79,17 +79,13 @@ export const StreamlinedCommandHud: React.FC<StreamlinedCommandHudProps> = ({
               <span>{isStreamlinedMode ? '⚡ STREAMLINED HUD: ACTIVE' : '📜 FULL DOSSIER MODE'}</span>
             </button>
 
-            <button
-              onClick={() => {
-                playCyberChime(1.1);
-                onTestVoice();
-              }}
-              className="px-2.5 py-1 rounded-full bg-emerald-950/80 hover:bg-emerald-900 border border-emerald-500/60 text-emerald-300 text-xs font-mono font-bold flex items-center gap-1 transition-all cursor-pointer"
-              title="Test Gemini 3.8 Flash Studio Neural Voice (Charon)"
+            <span
+              className="px-2.5 py-1 rounded-full bg-emerald-950/80 border border-emerald-500/60 text-emerald-300 text-xs font-mono font-bold flex items-center gap-1"
+              title="Permanently Locked Deep Studio Neural Voice (24kHz WAV)"
             >
               <Volume2 className="w-3.5 h-3.5 text-emerald-400" />
-              <span>Studio Neural Voice: Charon</span>
-            </button>
+              <span>🔒 Deep Voice Locked</span>
+            </span>
           </div>
         </div>
 
