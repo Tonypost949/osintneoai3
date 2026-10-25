@@ -55,7 +55,7 @@ export const SIX_RESIDENTS: ResidentProfile[] = [
     id: 'res-elizabeth',
     name: 'Elizabeth Tina Petruccio',
     dob: '07/29/1964',
-    role: 'Mother / Disabled Former Aerospace Worker',
+    role: 'Mother / Disabled 62-Year-Old Resident',
     shelterPeriod: 'Oct 2023 – Jan 2024',
     hospitalizations: 'Hoag (Nov 2023); Scripps Mercy (01/12–02/17/2024, 36 days); Mission Hills SNF (02/17–03/14/2024, 26 days)',
     documentedPathology: 'Atypical pneumonia J18.9 with reverse-halo RUL opacity & bilateral cavitary disease; right pleural empyema (103,752 WBC, 94% neutrophils, glucose <20) requiring chest tube thoracostomy; sepsis A41.9; acute hypercapnic respiratory failure J96.02 requiring intubation; C4–C5 discitis-osteomyelitis M46.22; severe cachexia with weight collapse from 160 lb baseline down to 116 lb.',

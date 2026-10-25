@@ -30,6 +30,7 @@ import {
   StudioVoicePersona,
   STUDIO_PERSONAS,
   normalizeTextForSpeech,
+  prepareTextForStudioAudio,
   playCyberChime,
   getBestVoiceForPersona,
   fetchGeminiNeuralAudio,
@@ -54,6 +55,7 @@ interface CinematicDemoOverlayProps {
   onVoiceStateChange?: (isSpeaking: boolean) => void;
   fontScale?: number;
   onChangeFontScale?: (scale: number) => void;
+  onOpenFileViewer?: (filename: string) => void;
 }
 
 export const CinematicDemoOverlay: React.FC<CinematicDemoOverlayProps> = ({
@@ -68,12 +70,14 @@ export const CinematicDemoOverlay: React.FC<CinematicDemoOverlayProps> = ({
   sceneProgress,
   activeAppTab,
   onSwitchAppTab,
+  isFullScreenCinema,
   onToggleFullScreenCinema,
   isLooping,
   onToggleLooping,
   onVoiceStateChange,
   fontScale: externalFontScale = 100,
   onChangeFontScale,
+  onOpenFileViewer,
 }) => {
   const [voiceEnabled, setVoiceEnabled] = useState<boolean>(true);
   const [selectedVoice, setSelectedVoice] = useState<StudioVoicePersona>('Charon');
@@ -261,34 +265,42 @@ export const CinematicDemoOverlay: React.FC<CinematicDemoOverlayProps> = ({
 
         audio.onerror = () => {
           if (sessionId !== narrationSessionIdRef.current) return;
-          playBrowserSpeechFallback(spokenText, sessionId);
+          setIsCurrentlySpeaking(false);
         };
 
         await audio.play();
         return;
       }
     } catch (err) {
-      console.warn('Gemini Neural Audio playback error, falling back:', err);
+      console.warn('Gemini Neural Audio playback error:', err);
     }
 
-    // 2. Fallback to calibrated browser SpeechSynthesis
-    playBrowserSpeechFallback(spokenText, sessionId);
+    // Do NOT play robotic browser speech; hold gracefully
+    setIsCurrentlySpeaking(false);
   };
 
   const handleTestVoice = (persona: StudioVoicePersona) => {
     setSelectedVoice(persona);
     stopCurrentAudio();
     const sessionId = narrationSessionIdRef.current;
-    const testIntro = `This is ${STUDIO_PERSONAS[persona].label}. All seven evidentiary acts, Hexavalent Chromium levels at 49 times screening standards, and the two void ab initio public land deals are loaded and ready for judicial review.`;
+    const testIntro = `This is ${STUDIO_PERSONAS[persona].label}. All nine evidentiary acts, Hexavalent Chromium levels at 49 times screening standards, and the two void ab initio public land deals are loaded and ready for judicial review.`;
     playStudioNarration(testIntro, sessionId);
   };
+
+  // Prefetch all acts audio into memory cache on mount / voice change
+  useEffect(() => {
+    CINEMATIC_DEMO_SCENES.forEach((sc) => {
+      const txt = prepareTextForStudioAudio(sc.actNumber, sc.title, sc.narrative);
+      fetchGeminiNeuralAudio(txt, selectedVoice).catch(() => {});
+    });
+  }, [selectedVoice]);
 
   useEffect(() => {
     stopCurrentAudio();
     if (!isActive || !voiceEnabled) return;
 
     const sessionId = narrationSessionIdRef.current;
-    const narrationText = `Act ${scene.actNumber}. ${scene.title}. ${scene.narrative}`;
+    const narrationText = prepareTextForStudioAudio(scene.actNumber, scene.title, scene.narrative);
     playStudioNarration(narrationText, sessionId);
 
     return () => {
@@ -344,89 +356,118 @@ export const CinematicDemoOverlay: React.FC<CinematicDemoOverlayProps> = ({
               isDraggingCc ? 'border-cyan-400 ring-2 ring-cyan-500/30 cursor-grabbing' : 'border-slate-800 hover:border-slate-700 cursor-grab'
             } shadow-2xl backdrop-blur-md text-slate-100 select-none transition-[width,padding] duration-200`}
           >
-            <div className="flex items-center justify-between mb-1">
-              <span className="text-[10px] font-mono font-bold text-amber-400 uppercase">
-                CLOSED CAPTIONS // ACT {scene.actNumber}
-              </span>
-              <span className="text-[9px] text-slate-400 font-mono">Drag to Move</span>
-            </div>
             <p
               style={{
-                fontSize: `${Math.max(8, Math.round(12.5 * scaleFactor * 10) / 10)}px`,
-                lineHeight: 1.5,
+                fontSize: `${Math.max(9, Math.round(13 * scaleFactor * 10) / 10)}px`,
+                lineHeight: 1.55,
               }}
               className="text-slate-100 font-serif leading-relaxed"
             >
               {scene.narrative}
             </p>
+
+            {/* Live Exhibit Link During Demo */}
+            {scene.evidenceModalTarget && (
+              <div className="mt-2.5 pt-2 border-t border-slate-800/80 flex items-center justify-between gap-2">
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (onOpenFileViewer) {
+                      onOpenFileViewer(scene.evidenceModalTarget!);
+                    }
+                  }}
+                  className="px-2.5 py-1 rounded bg-red-950/90 hover:bg-red-900 border border-red-500/60 text-red-200 text-[11px] font-mono font-bold flex items-center gap-1.5 cursor-pointer shadow-md transition-all"
+                  title={`Open exhibit: ${scene.evidenceModalTarget}`}
+                >
+                  <FolderOpen className="w-3.5 h-3.5 text-red-400 shrink-0" />
+                  <span className="truncate max-w-[220px]">Exhibit: {scene.evidenceModalTarget}</span>
+                  <span className="text-amber-300 ml-1">&rarr;</span>
+                </button>
+                <span className="text-[10px] text-slate-500 font-mono">Act {scene.actNumber}/09</span>
+              </div>
+            )}
           </div>
         )}
       </div>
 
-      {/* Restore Pill when Menu is Fully Hidden */}
-      {demoMenuHidden ? (
-        <div
-          style={{ fontSize: `${demoBoxBaseFontPx}px` }}
-          className="fixed bottom-2.5 right-3 z-40 flex items-center gap-[0.45em]"
+      {/* Floating Exit Fullscreen Button in Cinema Mode */}
+      {isFullScreenCinema && (
+        <button
+          onClick={onToggleFullScreenCinema}
+          className="fixed top-3 right-3 z-50 px-3.5 py-1.5 rounded-full bg-slate-950/90 hover:bg-slate-900 border border-slate-700/80 text-slate-300 hover:text-white text-xs font-mono backdrop-blur-md shadow-2xl flex items-center gap-1.5 transition-all cursor-pointer ring-1 ring-white/10"
+          title="Exit Fullscreen (or press Esc)"
         >
-          <button
-            onClick={() => setDemoMenuHidden(false)}
-            className="px-[0.95em] py-[0.5em] rounded-full bg-slate-950/90 hover:bg-slate-900 border border-cyan-500/50 text-cyan-200 text-[0.92em] font-mono font-bold flex items-center gap-[0.45em] shadow-2xl backdrop-blur-md cursor-pointer transition-all"
-            title="Show Demo Controls Menu"
-          >
-            <Eye className="w-[1.15em] h-[1.15em] text-cyan-400 shrink-0" />
-            <span>Show Demo Menu (Act {scene.actNumber}/08)</span>
-          </button>
-        </div>
-      ) : (
-        /* Bottom Demo Box (Mini-Player & Fullsize Controls Drawer) */
-        <div
-          style={{
-            fontSize: `${demoBoxBaseFontPx}px`,
-            width: showControlsDrawer ? `min(96vw, ${Math.round(896 * scaleFactor)}px)` : 'auto',
-            maxWidth: '96vw',
-          }}
-          className="fixed bottom-2.5 left-1/2 -translate-x-1/2 z-40 transition-all duration-200"
-        >
-          <div
-            style={{ borderRadius: `${Math.max(10, Math.round(16 * scaleFactor))}px` }}
-            className="bg-slate-950/90 hover:bg-slate-950/95 border border-cyan-500/40 shadow-2xl backdrop-blur-md text-slate-100 overflow-hidden transition-all duration-200"
-          >
-            {/* Progress Hairline */}
-            <div
-              style={{ height: `${Math.max(3, Math.round(4 * scaleFactor))}px` }}
-              className="w-full bg-slate-900 relative overflow-hidden"
-            >
-              <div
-                className="h-full bg-gradient-to-r from-red-500 via-amber-400 to-cyan-500 transition-all duration-200"
-                style={{ width: `${sceneProgress}%` }}
-              />
-            </div>
+          <Maximize2 className="w-3.5 h-3.5 text-cyan-400" />
+          <span>Exit Fullscreen (Esc)</span>
+        </button>
+      )}
 
-            {/* Single-Row Mini-Player Bar */}
-            <div className="px-[0.95em] py-[0.5em] flex flex-wrap items-center justify-between gap-[0.65em]">
-              {/* Act Badge & Short Title */}
-              <div className="flex items-center gap-[0.55em] min-w-0">
-                <span className="px-[0.5em] py-[0.18em] rounded bg-red-950/90 border border-red-500/40 text-red-300 text-[0.84em] font-mono font-bold shrink-0">
-                  ACT {scene.actNumber}/08
-                </span>
-                <span
-                  style={{ maxWidth: `min(58vw, ${Math.round(250 * scaleFactor)}px)` }}
-                  className="text-[1em] font-bold text-white truncate"
-                >
-                  {scene.title}
-                </span>
+      {/* Bottom Demo Controls - Completely omitted in Fullscreen mode per user directive */}
+      {!isFullScreenCinema && (
+        demoMenuHidden ? (
+          <div
+            style={{ fontSize: `${demoBoxBaseFontPx}px` }}
+            className="fixed bottom-2.5 right-3 z-40 flex items-center gap-[0.45em]"
+          >
+            <button
+              onClick={() => setDemoMenuHidden(false)}
+              className="px-[0.95em] py-[0.5em] rounded-full bg-slate-950/90 hover:bg-slate-900 border border-cyan-500/50 text-cyan-200 text-[0.92em] font-mono font-bold flex items-center gap-[0.45em] shadow-2xl backdrop-blur-md cursor-pointer transition-all"
+              title="Show Demo Controls Menu"
+            >
+              <Eye className="w-[1.15em] h-[1.15em] text-cyan-400 shrink-0" />
+              <span>Show Demo Menu (Act {scene.actNumber}/09)</span>
+            </button>
+          </div>
+        ) : (
+          /* Bottom Demo Box (Mini-Player & Fullsize Controls Drawer) */
+          <div
+            style={{
+              fontSize: `${demoBoxBaseFontPx}px`,
+              width: showControlsDrawer ? `min(96vw, ${Math.round(896 * scaleFactor)}px)` : 'auto',
+              maxWidth: '96vw',
+            }}
+            className="fixed bottom-2.5 left-1/2 -translate-x-1/2 z-40 transition-all duration-200"
+          >
+            <div
+              style={{ borderRadius: `${Math.max(10, Math.round(16 * scaleFactor))}px` }}
+              className="bg-slate-950/90 hover:bg-slate-950/95 border border-cyan-500/40 shadow-2xl backdrop-blur-md text-slate-100 overflow-hidden transition-all duration-200"
+            >
+              {/* Progress Hairline */}
+              <div
+                style={{ height: `${Math.max(3, Math.round(4 * scaleFactor))}px` }}
+                className="w-full bg-slate-900 relative overflow-hidden"
+              >
+                <div
+                  className="h-full bg-gradient-to-r from-red-500 via-amber-400 to-cyan-500 transition-all duration-200"
+                  style={{ width: `${sceneProgress}%` }}
+                />
               </div>
 
-              {/* Mini-Player Transport & Controls */}
-              <div className="flex flex-wrap items-center gap-[0.45em] shrink-0">
-                <button
-                  onClick={handlePrev}
-                  className="p-[0.45em] rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-800 cursor-pointer"
-                  title="Previous Act"
-                >
-                  <SkipBack className="w-[1.1em] h-[1.1em]" />
-                </button>
+              {/* Single-Row Mini-Player Bar */}
+              <div className="px-[0.95em] py-[0.5em] flex flex-wrap items-center justify-between gap-[0.65em]">
+                {/* Act Badge & Short Title */}
+                <div className="flex items-center gap-[0.55em] min-w-0">
+                  <span className="px-[0.5em] py-[0.18em] rounded bg-red-950/90 border border-red-500/40 text-red-300 text-[0.84em] font-mono font-bold shrink-0">
+                    ACT {scene.actNumber}/09
+                  </span>
+                  <span
+                    style={{ maxWidth: `min(58vw, ${Math.round(250 * scaleFactor)}px)` }}
+                    className="text-[1em] font-bold text-white truncate"
+                  >
+                    {scene.title}
+                  </span>
+                </div>
+
+                {/* Mini-Player Transport & Controls */}
+                <div className="flex flex-wrap items-center gap-[0.45em] shrink-0">
+                  <button
+                    onClick={handlePrev}
+                    className="p-[0.45em] rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-800 cursor-pointer"
+                    title="Previous Act"
+                  >
+                    <SkipBack className="w-[1.1em] h-[1.1em]" />
+                  </button>
 
                 <button
                   onClick={onTogglePlay}
@@ -735,14 +776,13 @@ export const CinematicDemoOverlay: React.FC<CinematicDemoOverlayProps> = ({
                         </select>
                       </div>
                     )}
-
                   </div>
                 </div>
               </div>
             )}
           </div>
         </div>
-      )}
+      ))}
     </>
   );
 };

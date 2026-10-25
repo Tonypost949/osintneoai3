@@ -38,7 +38,7 @@ export const CallToActionHero: React.FC<CallToActionHeroProps> = ({
     const summary = [
       'HBNC CASE 3 — RELATOR & INTAKE EVALUATION MEMORANDUM',
       'Site: 17631 Cameron Lane, Huntington Beach, CA (Mercy House Living Centers)',
-      'Victims: Elizabeth Tina Petruccio (aerospace worker, disabled) & Anthony DiMarcello III',
+      'Victims: Elizabeth Tina Petruccio (disabled resident) & Anthony DiMarcello III',
       'Contaminant: Hexavalent Chromium at 980 µg/kg (49x DTSC residential screening limit)',
       'Breach: Asphalt cap breached by anchor bolts under beds on Nov 7, 2023 (1-yr warranty expired)',
       'Injury: Admitted 01/12/2024 to Scripps Mercy with empyema (103,752 WBC), intubated, 62 days ICU; expelled while intubated',
@@ -95,7 +95,7 @@ export const CallToActionHero: React.FC<CallToActionHeroProps> = ({
 
       {/* Subtitle / Core Narrative Card */}
       <p className="text-slate-300 text-sm sm:text-base leading-relaxed mb-6 font-serif max-w-4xl bg-slate-900/60 p-4 rounded-xl border border-slate-800 backdrop-blur-sm">
-        A 62-year-old disabled aerospace worker (<span className="text-white font-semibold">Elizabeth Petruccio</span>) and her caregiver son (<span className="text-white font-semibold">Anthony DiMarcello III</span>) were placed in a municipal shelter built over soil contaminated with <span className="text-red-400 font-bold underline decoration-red-500 underline-offset-4">hexavalent chromium at 49&times; the state residential screening limit</span>. County approval was conditioned on an asphalt cap that the City contracted with only a <span className="text-amber-300 font-bold">1-year warranty</span>. On November 7, 2023, anchor bolts punctured the cap beneath resident beds. Within nine weeks Elizabeth was intubated in the ICU with sepsis and pleural empyema—and <span className="text-red-400 font-bold">the shelter expelled and locked her out while on life support</span>.
+        A 62-year-old disabled resident (<span className="text-white font-semibold">Elizabeth Petruccio</span>) and her caregiver son (<span className="text-white font-semibold">Anthony DiMarcello III</span>) were placed in a municipal shelter built over soil contaminated with <span className="text-red-400 font-bold underline decoration-red-500 underline-offset-4">hexavalent chromium at 49&times; the state residential screening limit</span>. County approval was conditioned on an asphalt cap that the City contracted with only a <span className="text-amber-300 font-bold">1-year warranty</span>. On November 7, 2023, anchor bolts punctured the cap beneath resident beds. Within nine weeks Elizabeth was intubated in the ICU with sepsis and pleural empyema—and <span className="text-red-400 font-bold">the shelter expelled and locked her out while on life support</span>.
       </p>
 
       {/* Visual Live KPI Metrics with Neon Dials */}
@@ -198,7 +198,7 @@ export const CallToActionHero: React.FC<CallToActionHeroProps> = ({
               </span>
               <h4 className="font-bold text-white text-sm mb-1">Heavy Industrial Chemical Plume</h4>
               <p className="text-slate-400">
-                17631 Cameron Lane: former auto &amp; aerospace site contaminated with Hexavalent Chromium (49× screening level), Trichloroethene, and Arsenic. County mandated an unbroken asphalt cap.
+                17631 Cameron Lane: former industrial &amp; auto salvage site contaminated with Hexavalent Chromium (49× screening level), Trichloroethene, and Arsenic. County mandated an unbroken asphalt cap.
               </p>
             </div>
 

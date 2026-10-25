@@ -1,4 +1,4 @@
-export type AppViewportTab = 'master' | 'ailaws' | 'screener' | 'outreach' | 'osint' | 'locker';
+export type AppViewportTab = 'master' | 'ailaws' | 'screener' | 'void-deals' | 'outreach' | 'osint' | 'locker' | 'integrations';
 
 export interface CinematicSceneConfig {
   id: string;
@@ -9,6 +9,7 @@ export interface CinematicSceneConfig {
   narrative: string;
   targetAppTab: AppViewportTab;
   targetElementId?: string;
+  evidenceModalTarget?: string;
   durationMs: number;
   evidencePath: string;
   buttonSequence?: string[];
@@ -27,9 +28,10 @@ export const CINEMATIC_DEMO_SCENES: CinematicSceneConfig[] = [
     title: 'Act 1: Executive Call to Action & The Six Immediate Demands',
     subtitle: 'Huntington Beach Navigation Center · 49× Hexavalent Chromium Contamination',
     narrative:
-      'Welcome to the HBNC Case 3 and OSINT Neo AI Evidentiary Command Center. A 62-year-old disabled aerospace worker, Elizabeth Petruccio, and her caregiver son Anthony DiMarcello entered a publicly funded municipal shelter built over soil containing hexavalent chromium at 49 times state residential screening levels. Within nine weeks, Elizabeth was intubated in the ICU with empyema and sepsis, losing 44 pounds. While in intensive care, the shelter terminated her bed and barred her for 30 days. Every fact here is indexed to primary government contracts, GPS-stamped photographs, and hospital electronic health records.',
+      'Welcome to the HBNC Case 3 and OSINT Neo AI Evidentiary Command Center. A 62-year-old disabled resident, Elizabeth Petruccio, and her caregiver son Anthony DiMarcello entered a publicly funded municipal shelter built over soil containing hexavalent chromium at 49 times state residential screening levels. Within nine weeks, Elizabeth was intubated in the ICU with empyema and sepsis, losing 44 pounds. While in intensive care, the shelter terminated her bed and barred her for 30 days. Every fact here is indexed to primary government contracts, GPS-stamped photographs, and hospital electronic health records.',
     targetAppTab: 'master',
     targetElementId: 'cta-action-hero',
+    evidenceModalTarget: 'navigation_center_003.jpg',
     durationMs: 44000,
     evidencePath: 'PACER 8:26-cv-00348-JWH-ADS / SAVC ECF 115 / Opp. MTD ECF 130',
     buttonSequence: [
@@ -55,6 +57,7 @@ export const CINEMATIC_DEMO_SCENES: CinematicSceneConfig[] = [
       'Here is the documentary core of the case: Document One, County briefing navigation center 003, states the site was approved for shelter use only as long as an asphalt pavement cover was maintained over the soil. Document Two, City contract Laserfiche 5406552 for $2.41 million, warranted that 2-inch asphalt cap for only one single year, and contractor proposal 20390 admitted the crew was not 40-hour HAZWOPER trained. Document Three, photographed by Elizabeth on November 7, 2023, shows corroded anchor bolts puncturing the cap beneath beds with raw sub-slab soil on the sleeping floor at GPS 33.706389, -117.988611.',
     targetAppTab: 'master',
     targetElementId: 'site-section',
+    evidenceModalTarget: 'HB_Shelter_Nov2023_photo_01.jpg',
     durationMs: 48000,
     evidencePath: 'City Contract Doc ID 20-9041/235642 (Laserfiche #5406552) & Proposal #20390',
     buttonSequence: [
@@ -80,6 +83,7 @@ export const CINEMATIC_DEMO_SCENES: CinematicSceneConfig[] = [
       'This was not an isolated illness. Within a 14-month window, six residents sleeping in the same Sprung structure suffered acute pneumonia, pleural disease, sepsis, or cardiac trauma. Burt Bell died in early 2024; his coroner certificate confirms pneumonia with environmental vulnerability. Jesse Knabb suffered recurrent chemical pneumonitis and empyema. Brian Bell submitted a signed grievance that shelter management left completely blank, and later died. Anthony DiMarcello suffered four fractured ribs, multiple pulmonary infiltrates, and permanent shoulder disability. In Elizabeth Petruccio’s chart, social workers documented the Navigation Center three times, but 25 physician notes omitted it.',
     targetAppTab: 'master',
     targetElementId: 'people-section',
+    evidenceModalTarget: 'scripps_ehr_page_985.png',
     durationMs: 48000,
     evidencePath: '1.E.Petruccio Patient Health.pdf (pp. 654–1051) & Sheriff-Coroner Cert 04/11/2024',
     buttonSequence: [
@@ -106,6 +110,7 @@ export const CINEMATIC_DEMO_SCENES: CinematicSceneConfig[] = [
       'Under the ailaws framework, every legal cause of action is mapped directly to its statutory elements and corresponding documentary exhibits. Under ADA Title II and the Fair Housing Act, automatically expelling a hospitalized disabled resident and imposing a 30-day lockout is a per se violation of reasonable accommodation mandates. Under RCRA citizen suit provisions, the failed asphalt cap over 49 times screening levels establishes imminent and substantial endangerment. And under California Welfare and Institutions Code section 15657, abandoning a dependent adult while in intensive care triggers enhanced remedies, including mandatory attorney fees.',
     targetAppTab: 'ailaws',
     targetElementId: 'ailaws-root',
+    evidenceModalTarget: 'navigation_center_003.jpg',
     durationMs: 48000,
     evidencePath: '42 U.S.C. § 12132 · 42 U.S.C. § 3604 · 42 U.S.C. § 6972 · Cal. Welf. & Inst. Code § 15657',
     buttonSequence: [
@@ -131,6 +136,7 @@ export const CINEMATIC_DEMO_SCENES: CinematicSceneConfig[] = [
       'The ailaws module features an interactive legal notice generator. With a single click, attorneys, advocates, or the claimants can generate ready-to-send formal notices populated with exact dates, Laserfiche contract IDs, and EHR citations: Template 1 produces a comprehensive Counsel Intake and Co-Counsel Memo; Template 2 generates an Emergency Reasonable Accommodation and Bed-Hold Demand; Template 3 issues a HIPAA Section 164.526 Medical Record Amendment to correct the chart; and Template 4 serves a formal Spoliation and Evidence Preservation Hold Notice.',
     targetAppTab: 'ailaws',
     targetElementId: 'gen-box-section',
+    evidenceModalTarget: 'scripps_ehr_page_1034.png',
     durationMs: 46000,
     evidencePath: '03_Law_and_Remedies.md & 04_Outreach_Pack.md',
     buttonSequence: [
@@ -148,41 +154,68 @@ export const CINEMATIC_DEMO_SCENES: CinematicSceneConfig[] = [
     ],
   },
   {
-    id: 'ACT_06_VICTIM_SCREENER_UPLOAD',
+    id: 'ACT_06_VOID_AB_INITIO_DEALS',
     actNumber: '06',
-    featureBadge: 'COMMUNITY TOOL · VICTIM SCREENER & DIRECT UPLOAD',
-    title: 'Act 6: Contamination Exposure Screener & Single-File Record Uploader',
-    subtitle: 'No Login Required · Single File Upload · Comments Moderation · Email to Coordinator',
+    featureBadge: 'FPPC FORM 700 · 2 VOID AB INITIO DEALS',
+    title: 'Act 6: Two Void Ab Initio Public Land Deals ($320M vs $6.09M)',
+    subtitle: 'Huntington Beach Shelter Site vs. Anaheim Angel Stadium · Thomson v. Call Strict Disgorgement',
     narrative:
-      'If you or someone you know was a resident, staff member, or visitor at the Huntington Beach Navigation Center, you can use our interactive Contamination Screener right now without logging in. Select your documented symptoms, specify your bed number and stay dates, or upload a single medical record or photograph. Our screening engine cross-references your profile against known toxic endpoints and resident illness clusters. You can leave comments or testimony that the case coordinator will personally review, verify, and moderate. Submissions are transmitted directly to the case coordinator at amd949609@gmail.com.',
-    targetAppTab: 'screener',
-    targetElementId: 'screener-root',
-    durationMs: 48000,
-    evidencePath: 'Direct Email Integration: amd949609@gmail.com',
+      'We examine the controlling Form 700 audit comparing two illegal municipal transactions under California Government Code section 1090. Deal 1 is the 6.09 million dollar Huntington Beach Navigation Center acquisition: trustee Mitsuru Yamada, a 25-year Orange County EMA engineer, filed zero Form 700 statements despite owning reciprocal easement UPX1978058 over the contaminated parcel. Deal 2 is the 320 million dollar Anaheim Angel Stadium sale, where Mayor Harry Sidhu pleaded guilty to honest services fraud in USA v. Sidhu before Judge John W. Holcomb, leading the City Council to void the sale on May 24, 2022. Under Thomson v. Call, infected contracts are strictly void ab initio with mandatory 100 percent disgorgement without offset.',
+    targetAppTab: 'void-deals',
+    targetElementId: 'void-deals-root',
+    evidenceModalTarget: 'Laserfiche #5406552',
+    durationMs: 50000,
+    evidencePath: 'Thomson v. Call (38 Cal.3d 633) & USA v. Sidhu (8:23-cr-00114-JWH)',
     buttonSequence: [
-      'Step 1: Select Documented Symptoms (Pneumonia, Empyema, Sepsis)',
-      'Step 2: Real-time Toxicity Correlation Score & Resident Match',
-      'Step 3: Single File Record Upload (PDF / JPG / PNG / TXT)',
-      'Step 4: Leave Statement / Comments for Coordinator Review',
-      'Moderator: Filter, Answer & Delete Comments (Local & Email)',
+      'Side-by-Side: Deal 1 ($6.09M HBNC) vs Deal 2 ($320M Angel Stadium)',
+      'Controlling Precedent: Thomson v. Call 100% Strict Disgorgement',
+      'Cross-Case Notice: Hon. John W. Holcomb FRE 201 Judicial Nexus',
+      'Export Audit: Structured JSON Evidence Dossier Download',
     ],
     metrics: [
-      { label: 'Authentication', value: 'NO LOGIN REQUIRED', accent: 'emerald' },
-      { label: 'Upload Rule', value: 'Single File / Comments', accent: 'cyan' },
-      { label: 'Email Target', value: 'amd949609@gmail.com', accent: 'red' },
-      { label: 'Community Board', value: 'Moderated Testimonies', accent: 'purple' },
+      { label: 'Angel Stadium Sale', value: '$320,000,000', accent: 'purple' },
+      { label: 'HBNC Acquisition', value: '$6,094,847', accent: 'red' },
+      { label: 'Disgorgement Rule', value: '100% Strict No Offset', accent: 'emerald' },
+      { label: 'Federal Judge', value: 'Hon. John W. Holcomb', accent: 'cyan' },
     ],
   },
   {
-    id: 'ACT_07_OUTREACH_TELEMETRY',
+    id: 'ACT_07_VICTIM_SCREENER_UPLOAD',
     actNumber: '07',
+    featureBadge: 'LIVE VICTIM MATRIX · ANONYMOUS UPLOAD & SCREENER',
+    title: 'Act 7: Victim Contamination Screener & Live Anonymized Visual Matrix',
+    subtitle: 'Strict HBNC Victim 1, 2, 3 Anonymization · Live Card Creation · ZIP & File Upload',
+    narrative:
+      'The Contamination Screener allows any victim, family member, or worker to check toxic symptoms and upload records with zero login required. Every submission automatically generates a live visual card in the app, strictly anonymizing patient names as HBNC Victim 1, HBNC Victim 2, and so forth, while preserving all clinical dates, bed coordinates, and pathology. Each entry is dynamically correlated with the GeoTracker 49 times Chromium plume, the Nov 7 cap breach photos, and the Form 700 void ab initio disgorgement framework. Submissions transmit instantly to coordinator email amd949609@gmail.com.',
+    targetAppTab: 'screener',
+    targetElementId: 'screener-root',
+    evidenceModalTarget: 'HB_Shelter_Nov2023_photo_01.jpg',
+    durationMs: 48000,
+    evidencePath: 'Direct Coordinator Intake: amd949609@gmail.com',
+    buttonSequence: [
+      'Step 1: Check Symptoms & Calculate 49x Cr(VI) Plume Correlation',
+      'Step 2: Instant Visual Card Generation (HBNC Victim 1, 2, 3...)',
+      'Step 3: Universal File Upload (.ZIP, PDF, Image, EHR, Notes)',
+      'Step 4: Automatic Cross-Matching with Form 700 & Evidence Locker',
+    ],
+    metrics: [
+      { label: 'Privacy Standard', value: 'Strict HBNC Victim #ID', accent: 'emerald' },
+      { label: 'Upload Support', value: '.ZIP & All File Types', accent: 'cyan' },
+      { label: 'Live Generation', value: 'Instant Visual Matrix', accent: 'amber' },
+      { label: 'Coordinator Email', value: 'amd949609@gmail.com', accent: 'red' },
+    ],
+  },
+  {
+    id: 'ACT_08_OUTREACH_TELEMETRY',
+    actNumber: '08',
     featureBadge: 'DISPATCH ANALYTICS · 5-YEAR OUTREACH CAMPAIGN',
-    title: 'Act 7: Five-Year Outreach Analytics & Active Federal Control Dockets',
+    title: 'Act 8: Five-Year Outreach Analytics & Active Federal Control Dockets',
     subtitle: '184 Cataloged Dispatches · 76 Public Filings · GAO COMP-26-004512 & FBI 20IC002',
     narrative:
       'Our outreach dashboard tracks 184 cataloged dispatches between 2021 and 2026. This includes 76 public sector filings across federal, state, and municipal oversight agencies. The evidentiary significance is profound: we have established constructive administrative notice and legal exhaustion. Active federal control numbers include GAO FraudNet docket COMP-26-004512 for federal program audit, and FBI IC3 public corruption docket 20IC002. Documented responses span the CFTC Whistleblower Office, FEMA, and academic legal clinics at Loyola, USC, and Stanford.',
     targetAppTab: 'outreach',
     targetElementId: 'outreach-root',
+    evidenceModalTarget: 'navigation_center_003.jpg',
     durationMs: 44000,
     evidencePath: 'Summary_of_Outreach_Efforts__2021-Present__8418f504',
     buttonSequence: [
@@ -199,15 +232,16 @@ export const CINEMATIC_DEMO_SCENES: CinematicSceneConfig[] = [
     ],
   },
   {
-    id: 'ACT_08_EVIDENCE_LOCKER_AND_OSINT',
-    actNumber: '08',
+    id: 'ACT_09_EVIDENCE_LOCKER_AND_OSINT',
+    actNumber: '09',
     featureBadge: 'DOCUMENT VAULT · EVIDENCE LOCKER & OSINT LIBRARY',
-    title: 'Act 8: The Evidence Locker Hub & OSINT Research Library',
+    title: 'Act 9: The Evidence Locker Hub & OSINT Research Library',
     subtitle: 'Local Folder Scanner · Subfolders Auto-Link · 3,344 Main Repo Files · 31 Repos',
     narrative:
       'The Evidence Locker Hub connects all 12 dossier markdown files and the 4 connected subfolders: Evidence Locker, Hosted Dossiers, HBNC Case 2, and Desktop Items. Click Scan and Link Subfolders to automatically index your local folder, transforming every exhibit citation into an instant-preview link. Next to it, the OSINT Research Library indexes 3,344 main repository files and 15,320 items across 31 investigative repositories, categorized by priority tier and migration recommendations. The tour now loops back to Act 1.',
     targetAppTab: 'locker',
     targetElementId: 'locker-root',
+    evidenceModalTarget: 'scripps_ehr_page_985.png',
     durationMs: 46000,
     evidencePath: 'OSINT_Neo_AI_Index_baedd5dc & C:\\Users\\Amd949609\\Desktop\\HBNC_Case_3',
     buttonSequence: [

@@ -22,6 +22,11 @@ export const AiAssistantModal: React.FC<AiAssistantModalProps> = ({ isOpen, onCl
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [keyStatus, setKeyStatus] = useState<{ hasKey: boolean; source: string } | null>(null);
+  const [selectedModel, setSelectedModel] = useState<string>('gemini-4-argon');
+  const [customKey, setCustomKey] = useState<string>(() => {
+    return typeof window !== 'undefined' ? localStorage.getItem('gemini_custom_api_key') || '' : '';
+  });
+  const [showKeyInput, setShowKeyInput] = useState<boolean>(false);
 
   useEffect(() => {
     if (isOpen) {
@@ -31,6 +36,15 @@ export const AiAssistantModal: React.FC<AiAssistantModalProps> = ({ isOpen, onCl
         .catch(() => setKeyStatus({ hasKey: false, source: 'Local Environment' }));
     }
   }, [isOpen]);
+
+  const handleSaveCustomKey = (key: string) => {
+    setCustomKey(key);
+    if (key.trim()) {
+      localStorage.setItem('gemini_custom_api_key', key.trim());
+    } else {
+      localStorage.removeItem('gemini_custom_api_key');
+    }
+  };
 
   if (!isOpen) return null;
 
@@ -44,14 +58,19 @@ export const AiAssistantModal: React.FC<AiAssistantModalProps> = ({ isOpen, onCl
     setLoading(true);
 
     try {
-      // 1. First attempt: Server-Side Proxy using User Profile API Keys
+      // 1. First attempt: Server-Side Proxy using User Profile API Keys or Custom Key
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+      if (customKey.trim()) {
+        headers['x-gemini-key'] = customKey.trim();
+      }
+
       const serverRes = await fetch('/api/gemini', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify({
           prompt: q,
           messages: [...messages, userMsg],
-          model: 'gemini-4-argon',
+          model: selectedModel,
         }),
       });
 
@@ -130,33 +149,74 @@ export const AiAssistantModal: React.FC<AiAssistantModalProps> = ({ isOpen, onCl
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in">
       <div className="bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl max-w-3xl w-full max-h-[85vh] flex flex-col overflow-hidden text-slate-100">
         {/* Header */}
-        <div className="p-4 bg-slate-950 border-b border-slate-800 flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <div className="p-2 rounded-xl bg-indigo-950 border border-indigo-800 text-indigo-400">
-              <Bot className="w-5 h-5" />
+        <div className="p-4 bg-slate-950 border-b border-slate-800">
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-2.5">
+              <div className="p-2 rounded-xl bg-indigo-950 border border-indigo-800 text-indigo-400">
+                <Bot className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="text-sm font-bold text-white flex items-center gap-1.5">
+                  <span>Gemini Legal Dossier &amp; Proof Assistant</span>
+                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                </h3>
+                <p className="text-[11px] text-slate-400 font-mono">
+                  Active Model: <strong className="text-cyan-300">{selectedModel}</strong> &middot; /ailaws Matrix &middot; FRE 201
+                </p>
+              </div>
             </div>
-            <div>
-              <h3 className="text-sm font-bold text-white flex items-center gap-1.5">
-                <span>Gemini Legal Dossier &amp; Proof Assistant</span>
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-              </h3>
-              <p className="text-[11px] text-slate-400 font-mono">
-                Powered by Gemini 4 Argon &middot; /ailaws Matrix &middot; FRE 201
-              </p>
+
+            <div className="flex items-center gap-2">
+              {/* Model Selector Dropdown */}
+              <select
+                value={selectedModel}
+                onChange={(e) => setSelectedModel(e.target.value)}
+                className="bg-slate-900 border border-slate-700 text-cyan-300 text-[11px] font-mono px-2 py-1 rounded-lg outline-none cursor-pointer"
+                title="Select Gemini AI Model"
+              >
+                <option value="gemini-4-argon">⚡ Gemini 4 Argon (Premier)</option>
+                <option value="gemini-2.5-pro">Gemini 2.5 Pro (Deep Statutory)</option>
+                <option value="gemini-2.5-flash">Gemini 2.5 Flash (Ultra-Fast)</option>
+                <option value="gemini-3.8-flash">Gemini 3.8 Flash</option>
+              </select>
+
+              {/* Live Profile API Key Indicator & Custom Key Toggle */}
+              <button
+                onClick={() => setShowKeyInput(!showKeyInput)}
+                className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-950/80 hover:bg-emerald-900 border border-emerald-600/60 text-emerald-300 text-[11px] font-mono transition-all cursor-pointer"
+                title="Click to view / enter custom API key from another account"
+              >
+                <KeyRound className="w-3 h-3 text-emerald-400" />
+                <span>{customKey.trim() ? 'Custom Key: Active' : keyStatus?.hasKey ? 'Profile Key: Active' : 'Configure Key'}</span>
+              </button>
+
+              <button onClick={onClose} className="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800">
+                <X className="w-5 h-5" />
+              </button>
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
-            {/* Live Profile API Key Indicator */}
-            <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-950/80 border border-emerald-600/60 text-emerald-300 text-[11px] font-mono">
-              <KeyRound className="w-3 h-3 text-emerald-400" />
-              <span>{keyStatus?.hasKey ? 'Profile Key: Active' : 'Connecting Key...'}</span>
+          {/* Collapsible Custom Key Input Drawer */}
+          {showKeyInput && (
+            <div className="mt-2 p-2.5 bg-slate-900 border border-emerald-500/50 rounded-lg flex items-center gap-2 text-xs font-mono">
+              <span className="text-slate-400 whitespace-nowrap">Custom API Key:</span>
+              <input
+                type="password"
+                value={customKey}
+                onChange={(e) => handleSaveCustomKey(e.target.value)}
+                placeholder="Paste AI Studio API key (AIzaSy...)"
+                className="flex-1 bg-slate-950 border border-slate-700 rounded px-2 py-1 text-xs text-emerald-300 outline-none"
+              />
+              {customKey && (
+                <button
+                  onClick={() => handleSaveCustomKey('')}
+                  className="text-red-400 hover:underline text-[10px]"
+                >
+                  Clear
+                </button>
+              )}
             </div>
-
-            <button onClick={onClose} className="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800">
-              <X className="w-5 h-5" />
-            </button>
-          </div>
+          )}
         </div>
 
         {/* Message Thread */}
@@ -177,7 +237,7 @@ export const AiAssistantModal: React.FC<AiAssistantModalProps> = ({ isOpen, onCl
           {loading && (
             <div className="flex gap-2 items-center text-slate-400 text-xs italic font-mono">
               <Sparkles className="w-4 h-4 animate-spin text-indigo-400" />
-              <span>Analyzing case record with Gemini 4 Argon...</span>
+              <span>Analyzing case record with {selectedModel}...</span>
             </div>
           )}
         </div>

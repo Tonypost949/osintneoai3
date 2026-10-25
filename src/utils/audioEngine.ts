@@ -82,10 +82,16 @@ export async function fetchGeminiNeuralAudio(
     return ttsAudioCache.get(cacheKey)!;
   }
 
+  const customKey = typeof window !== 'undefined' ? localStorage.getItem('gemini_custom_api_key') : null;
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+  if (customKey) {
+    headers['x-gemini-key'] = customKey;
+  }
+
   try {
     const res = await fetch('/api/tts', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers,
       body: JSON.stringify({
         text: normalizeTextForSpeech(text),
         voice: voice === 'Kimi' ? 'Charon' : voice,
@@ -102,9 +108,16 @@ export async function fetchGeminiNeuralAudio(
     }
     return null;
   } catch (err) {
-    console.warn('Gemini Neural TTS fetch failed, using natural browser speech fallback:', err);
+    console.warn('Gemini Neural TTS fetch failed:', err);
     return null;
   }
+}
+
+// Formats concise, broadcast-ready narration to avoid TTS token rate limits
+export function prepareTextForStudioAudio(actNumber: string, title: string, narrative: string): string {
+  const sentences = narrative.split(/(?<=[.!?])\s+/);
+  const coreNarrative = sentences.slice(0, 2).join(' ');
+  return normalizeTextForSpeech(`Act ${actNumber}. ${title}. ${coreNarrative}`);
 }
 
 // Normalizes legal, toxicological, and case terms for human-quality articulation

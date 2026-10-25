@@ -1,9 +1,10 @@
 import React from 'react';
-import { ShieldAlert, Volume2, FolderOpen, Copy, Printer, FileText, BarChart3, Database, UserCheck, Bot, Scale } from 'lucide-react';
+import { ShieldAlert, Volume2, FolderOpen, Copy, Printer, FileText, BarChart3, Database, UserCheck, Bot, Scale, Zap } from 'lucide-react';
+import { AppViewportTab } from '../data/hbncDemoScript';
 
 interface HeaderProps {
-  activeTab: 'master' | 'ailaws' | 'screener' | 'void-deals' | 'outreach' | 'osint' | 'locker';
-  setActiveTab: (tab: 'master' | 'ailaws' | 'screener' | 'void-deals' | 'outreach' | 'osint' | 'locker') => void;
+  activeTab: AppViewportTab;
+  setActiveTab: (tab: AppViewportTab) => void;
   onOpenFolderScanner: () => void;
   onCopySummary: () => void;
   onToggleDemoAudio: () => void;
@@ -182,6 +183,19 @@ export const Header: React.FC<HeaderProps> = ({
         >
           <FolderOpen className="w-4 h-4 text-cyan-400" />
           <span>Evidence Locker Hub</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab('integrations')}
+          className={`flex items-center gap-2 px-3.5 py-2 rounded-t font-semibold text-xs transition-all whitespace-nowrap border-b-2 ${
+            activeTab === 'integrations'
+              ? 'bg-indigo-950 text-indigo-300 border-indigo-400 font-bold'
+              : 'text-indigo-400 hover:text-indigo-200 border-transparent hover:bg-indigo-950/40'
+          }`}
+        >
+          <Zap className="w-4 h-4 text-indigo-400 animate-pulse" />
+          <span>Integrations &amp; Studio Secrets</span>
+          <span className="bg-emerald-500/20 text-emerald-300 text-[10px] px-1.5 py-0.2 rounded font-mono">LIVE</span>
         </button>
       </div>
     </header>

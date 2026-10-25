@@ -41,6 +41,10 @@ test('buildNotificationMailto formats recipient email and subject correctly', ()
     notes: 'Developed severe cough after sleeping near wall with corroded bolts.',
     fileName: 'chest_ct_scan.pdf',
     fileSize: '2.4 MB',
+    victimAlias: 'HBNC Victim 1',
+    riskScore: 10,
+    matchedEvidenceFiles: ['GeoTracker T10000018579'],
+    voidAbInitioDealCorrelation: 'Thomson v. Call 100% strict disgorgement',
     riskLevel: 'HIGH_CORRELATION',
     adminApproved: false,
   });
@@ -69,5 +73,19 @@ test('normalizeTextForSpeech properly expands toxicological and statutory acrony
   assert.ok(normalized.includes('Federal Rule of Evidence 201'));
   assert.ok(normalized.includes('Welfare and Institutions Code Section 15657'));
 });
+
+test('PLATFORM_INTEGRATIONS has all 6 active cores configured and ready', async () => {
+  const { PLATFORM_INTEGRATIONS, DEFAULT_KEY_SLOTS } = await import('./integrationsManager');
+  assert.equal(PLATFORM_INTEGRATIONS.length, 6);
+  assert.ok(PLATFORM_INTEGRATIONS.some(i => i.id === 'threejs-subsurface'));
+  assert.ok(PLATFORM_INTEGRATIONS.some(i => i.id === 'google-maps-gis'));
+  assert.ok(PLATFORM_INTEGRATIONS.some(i => i.id === 'gemini-argon'));
+  assert.ok(PLATFORM_INTEGRATIONS.some(i => i.id === 'studio-tts'));
+
+  // Ensure default key slot maintains server primary without leaking raw key
+  assert.ok(DEFAULT_KEY_SLOTS.some(s => s.id === 'server-primary'));
+  assert.equal(DEFAULT_KEY_SLOTS[0].provider, 'gemini');
+});
+
 
 

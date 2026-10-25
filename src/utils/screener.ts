@@ -1,8 +1,9 @@
 export interface ExposureSubmission {
   id: string;
+  victimAlias: string; // Strictly "HBNC Victim 1", "HBNC Victim 2", etc. (NEVER reveal real names in UI)
   timestamp: string;
-  contributorName: string;
-  contactEmailOrPhone: string;
+  contributorName?: string; // Private intake info (only in direct email transmittal to coordinator)
+  contactEmailOrPhone?: string; // Private
   stayDates: string;
   bedNumber?: string;
   facilityLocation: string;
@@ -11,8 +12,12 @@ export interface ExposureSubmission {
   fileName?: string;
   fileSize?: string;
   fileDataUrl?: string;
+  fileType?: string;
+  riskScore: number;
   riskLevel: 'HIGH_CORRELATION' | 'MODERATE_CORRELATION' | 'INFORMATIONAL';
   matchedCohortResident?: string;
+  matchedEvidenceFiles: string[];
+  voidAbInitioDealCorrelation: string;
   adminApproved: boolean;
   adminAnswer?: string;
 }
@@ -29,6 +34,33 @@ export const KNOWN_TOXIC_SYMPTOMS = [
   { id: 'neurological', label: 'Confusion, Strokes, or Cognitive Decline', weight: 3, resident: 'Brian Bell' },
   { id: 'respiratory_vulnerability', label: 'Chronic Cough, Shortness of Breath, Hemoptysis', weight: 2, resident: 'Burt Bell' },
 ];
+
+export function getNextVictimAlias(existingCount: number): string {
+  return `HBNC Victim ${existingCount + 1}`;
+}
+
+export function getMatchedEvidenceFiles(symptoms: string[], bedNumber?: string): string[] {
+  const matches: string[] = [
+    'navigation_center_003.jpg',
+    'Laserfiche #5406552',
+    'GeoTracker_T10000018579_CrVI_Map.pdf',
+  ];
+  if (
+    symptoms.some((s) =>
+      /pneumonia|empyema|respiratory|intubation|lung/i.test(s)
+    )
+  ) {
+    matches.push('scripps_ehr_page_985.png', 'scripps_ehr_page_1034.png');
+  }
+  if (bedNumber || symptoms.length > 0) {
+    matches.push('HB_Shelter_Nov2023_photo_01.jpg', 'HB_Shelter_Nov2023_photo_08.jpg');
+  }
+  return Array.from(new Set(matches));
+}
+
+export function getVoidAbInitioCorrelation(): string {
+  return 'Infected by Deal 1 (17631 Cameron Lane allocation, Mitsuru Yamada trustee conflict, 0 Form 700 filings, UPX1978058). Void ab initio under Thomson v. Call (38 Cal.3d 633) with 100% strict disgorgement, directly parallel to Mayor Harry Sidhu in USA v. Sidhu (8:23-cr-00114-JWH).';
+}
 
 export function calculateExposureRisk(selectedSymptomIds: string[], stayedAtHBNC: boolean): {
   score: number;
@@ -66,19 +98,22 @@ export function calculateExposureRisk(selectedSymptomIds: string[], stayedAtHBNC
 }
 
 export function buildNotificationMailto(submission: ExposureSubmission, targetEmail = 'amd949609@gmail.com'): string {
-  const subject = encodeURIComponent(`[HBNC Victim Intake / Comment] New Submission from ${submission.contributorName || 'Anonymous'}`);
+  const victimLabel = submission.victimAlias || `HBNC Victim (Anonymous)`;
+  const subject = encodeURIComponent(`[HBNC Victim Intake / Comment] New Submission for ${victimLabel} (${submission.contributorName || 'Confidential'})`);
   const body = encodeURIComponent(
     `URGENT HBNC CONTAMINATION INTAKE / VICTIM REPORT\n` +
     `-----------------------------------------------------\n` +
+    `Victim Assigned Code: ${victimLabel}\n` +
     `Date/Time: ${submission.timestamp}\n` +
-    `Name: ${submission.contributorName || 'Anonymous'}\n` +
+    `Private Intake Name: ${submission.contributorName || 'Anonymous'}\n` +
     `Contact: ${submission.contactEmailOrPhone || 'Not provided'}\n` +
     `Shelter Dates: ${submission.stayDates || 'Not specified'}\n` +
     `Bed Number: ${submission.bedNumber || 'Unknown'}\n` +
     `Facility: ${submission.facilityLocation}\n` +
-    `Risk Level: ${submission.riskLevel}\n` +
+    `Risk Score: ${submission.riskScore || 'Calculated'} (${submission.riskLevel})\n` +
     `Reported Symptoms:\n - ${submission.symptoms.join('\n - ')}\n\n` +
     `Attached File: ${submission.fileName ? `${submission.fileName} (${submission.fileSize})` : 'None'}\n\n` +
+    `Form 700 / Void Ab Initio Correlation:\n${submission.voidAbInitioDealCorrelation || getVoidAbInitioCorrelation()}\n\n` +
     `Statement / Comments:\n${submission.notes}\n\n` +
     `-----------------------------------------------------\n` +
     `Transmitted via OSINT Neo AI & Legal Action Command Center (HBNC Case 3)`

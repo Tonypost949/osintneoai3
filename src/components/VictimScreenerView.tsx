@@ -1,12 +1,21 @@
 import React, { useState, useEffect } from 'react';
-import { UserCheck, Upload, AlertCircle, Send, CheckCircle2, Trash2, MessageSquare, Mail, ShieldCheck, HeartPulse, FileText, Lock } from 'lucide-react';
-import { KNOWN_TOXIC_SYMPTOMS, calculateExposureRisk, buildNotificationMailto, ExposureSubmission } from '../utils/screener';
+import { UserCheck, Upload, AlertCircle, Send, CheckCircle2, Trash2, MessageSquare, Mail, ShieldCheck, HeartPulse, FileText, Lock, Gavel, FolderOpen } from 'lucide-react';
+import {
+  KNOWN_TOXIC_SYMPTOMS,
+  calculateExposureRisk,
+  buildNotificationMailto,
+  ExposureSubmission,
+  getNextVictimAlias,
+  getMatchedEvidenceFiles,
+  getVoidAbInitioCorrelation
+} from '../utils/screener';
 
 const INITIAL_PUBLIC_COMMENTS: ExposureSubmission[] = [
   {
     id: 'sub-sample-1',
+    victimAlias: 'HBNC Victim 1',
     timestamp: '2026-09-14 14:22 PST',
-    contributorName: 'Former Bed #78 Resident',
+    contributorName: 'Confidential (Intake Verified)',
     contactEmailOrPhone: 'Verified by Coordinator',
     stayDates: 'November 2023 – January 2024',
     bedNumber: '78',
@@ -15,25 +24,32 @@ const INITIAL_PUBLIC_COMMENTS: ExposureSubmission[] = [
     notes: 'I slept two beds down from Elizabeth. Within two months I developed a violent rattle in my chest and was hospitalized at Hoag with pleural fluid. Staff told me if I stayed in the hospital over a week they would give my bed away.',
     fileName: 'Hoag_discharge_summary_redacted.pdf',
     fileSize: '1.8 MB',
+    riskScore: 10,
     riskLevel: 'HIGH_CORRELATION',
     matchedCohortResident: 'Elizabeth Petruccio / Jesse Knabb',
+    matchedEvidenceFiles: ['GeoTracker T10000018579', 'navigation_center_003.jpg', 'Laserfiche #5406552', 'scripps_ehr_page_985.png', 'HB_Shelter_Nov2023_photo_01.jpg'],
+    voidAbInitioDealCorrelation: 'Infected by Deal 1 (17631 Cameron Lane allocation, Mitsuru Yamada trustee conflict, 0 Form 700 filings, UPX1978058). Void ab initio under Thomson v. Call (38 Cal.3d 633) with 100% strict disgorgement, directly parallel to Mayor Harry Sidhu in USA v. Sidhu (8:23-cr-00114-JWH).',
     adminApproved: true,
-    adminAnswer: 'Coordinator Note: Corroborated with November 2023 shelter log. Your bed #78 was in the direct perimeter along the unsealed east anchor line.',
+    adminAnswer: 'Coordinator Note: Corroborated with November 2023 shelter log. Bed #78 was along the unsealed east anchor bolt breach line.',
   },
   {
     id: 'sub-sample-2',
+    victimAlias: 'HBNC Victim 2',
     timestamp: '2026-10-02 11:05 PST',
-    contributorName: 'Caregiver for Former Resident',
+    contributorName: 'Confidential (Intake Verified)',
     contactEmailOrPhone: 'Private Intake',
     stayDates: 'Spring 2024',
     bedNumber: '92',
     facilityLocation: 'Huntington Beach Navigation Center',
     symptoms: ['Non-healing Cellulitis / Staph Infection', 'Chronic Cough, Shortness of Breath, Hemoptysis'],
     notes: 'My brother slept right next to Burt Bell (Bed 91). Burt died from pneumonia, and my brother developed severe skin sores on his legs that would not heal for four months after sleeping on that floor.',
+    riskScore: 8,
     riskLevel: 'HIGH_CORRELATION',
     matchedCohortResident: 'Burt Bell (Bed 91) / Anthony DiMarcello III',
+    matchedEvidenceFiles: ['GeoTracker T10000018579', 'HB_Shelter_Nov2023_photo_01.jpg', 'Laserfiche #5406552'],
+    voidAbInitioDealCorrelation: 'Infected by Deal 1 (17631 Cameron Lane allocation, Mitsuru Yamada trustee conflict, 0 Form 700 filings, UPX1978058). Void ab initio under Thomson v. Call (38 Cal.3d 633) with 100% strict disgorgement, directly parallel to Mayor Harry Sidhu in USA v. Sidhu (8:23-cr-00114-JWH).',
     adminApproved: true,
-    adminAnswer: 'Coordinator Note: Burt Bell died in hospital custody after same-day exit. Thank you for this crucial corroboration.',
+    adminAnswer: 'Coordinator Note: Burt Bell died in hospital custody after same-day exit. Crucial corroborating evidence.',
   },
 ];
 
@@ -108,8 +124,9 @@ export const VictimScreenerView: React.FC = () => {
 
     const newSub: ExposureSubmission = {
       id: `sub-${Date.now()}`,
+      victimAlias: getNextVictimAlias(submissions.length),
       timestamp: new Date().toLocaleString(),
-      contributorName: contributorName.trim() || 'Anonymous Resident',
+      contributorName: contributorName.trim() || 'Confidential (Intake Verified)',
       contactEmailOrPhone: contactInfo.trim() || 'Not provided',
       stayDates: stayDates.trim() || 'Unspecified period',
       bedNumber: bedNumber.trim() || 'Unknown',
@@ -120,8 +137,11 @@ export const VictimScreenerView: React.FC = () => {
       notes: userComment.trim(),
       fileName: filePreviewName || undefined,
       fileSize: fileSizeStr || undefined,
+      riskScore: riskAnalysis.score,
       riskLevel: riskAnalysis.riskLevel,
       matchedCohortResident: riskAnalysis.matchedResidents.join(', ') || undefined,
+      matchedEvidenceFiles: getMatchedEvidenceFiles(selectedSymptoms, bedNumber),
+      voidAbInitioDealCorrelation: getVoidAbInitioCorrelation(),
       adminApproved: true, // Visible in read-only comment board
     };
 
@@ -458,65 +478,100 @@ export const VictimScreenerView: React.FC = () => {
         </div>
 
         <div className="space-y-4">
-          {submissions.map((sub) => (
-            <div
-              key={sub.id}
-              className="bg-slate-950 border border-slate-800 hover:border-slate-700 rounded-lg p-5 transition-all"
-            >
-              <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
-                <div className="flex items-center gap-2">
-                  <span className="font-bold text-white text-sm">{sub.contributorName}</span>
-                  {sub.bedNumber && (
-                    <span className="bg-slate-800 text-slate-300 px-2 py-0.5 rounded text-xs font-mono">
-                      Bed #{sub.bedNumber}
+          {submissions.map((sub, idx) => {
+            const victimTitle = sub.victimAlias || `HBNC Victim ${submissions.length - idx}`;
+            return (
+              <div
+                key={sub.id}
+                className="bg-slate-950 border border-slate-800 hover:border-slate-700 rounded-xl p-5 transition-all shadow-lg"
+              >
+                <div className="flex flex-wrap items-center justify-between gap-2 mb-2 pb-2 border-b border-slate-900">
+                  <div className="flex items-center gap-2">
+                    <span className="font-bold text-emerald-300 text-sm font-mono tracking-wide bg-emerald-950/80 px-2.5 py-1 rounded border border-emerald-700/60">
+                      {victimTitle}
                     </span>
-                  )}
-                  {sub.riskLevel === 'HIGH_CORRELATION' && (
-                    <span className="bg-red-950 text-red-300 border border-red-800 px-2 py-0.5 rounded text-[10px] font-bold uppercase">
-                      High Toxicity Match
-                    </span>
-                  )}
+                    {sub.bedNumber && (
+                      <span className="bg-slate-800 text-slate-300 px-2 py-0.5 rounded text-xs font-mono">
+                        Bed #{sub.bedNumber}
+                      </span>
+                    )}
+                    {sub.riskLevel === 'HIGH_CORRELATION' && (
+                      <span className="bg-red-950 text-red-300 border border-red-800 px-2 py-0.5 rounded text-[10px] font-bold uppercase">
+                        High Toxicity Match
+                      </span>
+                    )}
+                  </div>
+                  <div className="text-xs text-slate-500 font-mono">{sub.timestamp}</div>
                 </div>
-                <div className="text-xs text-slate-500 font-mono">{sub.timestamp}</div>
-              </div>
 
-              {sub.stayDates && (
-                <div className="text-xs text-slate-400 mb-2">
-                  Stay Period: <span className="text-slate-300">{sub.stayDates}</span>
+                {sub.stayDates && (
+                  <div className="text-xs text-slate-400 mb-2 font-mono">
+                    Stay Period: <span className="text-slate-300">{sub.stayDates}</span> &middot; Facility: <span className="text-slate-300">{sub.facilityLocation}</span>
+                  </div>
+                )}
+
+                {sub.symptoms && sub.symptoms.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5 mb-3">
+                    {sub.symptoms.map((s, i) => (
+                      <span
+                        key={i}
+                        className="bg-slate-900 border border-slate-800 text-emerald-400 text-[11px] px-2 py-0.5 rounded"
+                      >
+                        {s}
+                      </span>
+                    ))}
+                  </div>
+                )}
+
+                <p className="text-sm text-slate-300 leading-relaxed font-serif mb-3 whitespace-pre-wrap">
+                  {sub.notes}
+                </p>
+
+                {/* Form 700 Void Ab Initio Nexus Box */}
+                <div className="bg-purple-950/30 border border-purple-800/50 rounded-lg p-3 text-xs mb-3 font-mono">
+                  <div className="flex items-center gap-1.5 text-purple-300 font-bold mb-1">
+                    <Gavel className="w-3.5 h-3.5 text-purple-400 shrink-0" />
+                    <span>Form 700 Void Ab Initio Nexus (Thomson v. Call / USA v. Sidhu):</span>
+                  </div>
+                  <p className="text-slate-300 text-[11px] leading-relaxed">
+                    {sub.voidAbInitioDealCorrelation ||
+                      'Infected by Deal 1 (17631 Cameron Lane allocation, Mitsuru Yamada trustee conflict, 0 Form 700 filings, UPX1978058). Void ab initio under Thomson v. Call (38 Cal.3d 633) with 100% strict disgorgement, directly parallel to Mayor Harry Sidhu in USA v. Sidhu (8:23-cr-00114-JWH).'}
+                  </p>
                 </div>
-              )}
 
-              {sub.symptoms && sub.symptoms.length > 0 && (
-                <div className="flex flex-wrap gap-1.5 mb-3">
-                  {sub.symptoms.map((s, i) => (
+                {/* Matched Evidence Locker Exhibits */}
+                <div className="bg-slate-900/80 border border-slate-800 rounded-lg p-2.5 mb-3 flex flex-wrap items-center gap-1.5 text-xs font-mono">
+                  <span className="text-slate-400 font-bold mr-1 flex items-center gap-1">
+                    <FolderOpen className="w-3 h-3 text-cyan-400 shrink-0" />
+                    <span>Cross-Matched Exhibits:</span>
+                  </span>
+                  {(sub.matchedEvidenceFiles && sub.matchedEvidenceFiles.length > 0
+                    ? sub.matchedEvidenceFiles
+                    : ['GeoTracker T10000018579', 'navigation_center_003.jpg', 'Laserfiche #5406552', 'HB_Shelter_Nov2023_photo_01.jpg']
+                  ).map((ex, i) => (
                     <span
                       key={i}
-                      className="bg-slate-900 border border-slate-800 text-emerald-400 text-[11px] px-2 py-0.5 rounded"
+                      className="px-2 py-0.5 rounded bg-slate-950 text-cyan-300 border border-cyan-800/60 text-[10px]"
                     >
-                      {s}
+                      {ex}
                     </span>
                   ))}
                 </div>
-              )}
 
-              <p className="text-sm text-slate-300 leading-relaxed font-serif mb-3 whitespace-pre-wrap">
-                {sub.notes}
-              </p>
+                {sub.fileName && (
+                  <div className="flex items-center gap-2 text-xs text-blue-400 bg-blue-950/40 border border-blue-900/60 px-3 py-1.5 rounded mb-3 font-mono">
+                    <FileText className="w-3.5 h-3.5 shrink-0" />
+                    <span>Attached Evidence: {sub.fileName} ({sub.fileSize || 'Attached'})</span>
+                  </div>
+                )}
 
-              {sub.fileName && (
-                <div className="flex items-center gap-2 text-xs text-blue-400 bg-blue-950/40 border border-blue-900/60 px-3 py-1.5 rounded mb-3 font-mono">
-                  <FileText className="w-3.5 h-3.5" />
-                  <span>Single File Upload: {sub.fileName} ({sub.fileSize || 'Attached'})</span>
-                </div>
-              )}
-
-              {/* Coordinator Answer if present */}
-              {sub.adminAnswer && (
-                <div className="bg-slate-900/90 border-l-4 border-l-emerald-500 p-3 rounded text-xs text-slate-200 mt-2">
-                  <span className="font-bold text-emerald-400 block mb-0.5">Response from Anthony DiMarcello III:</span>
-                  <p className="text-slate-300 font-sans">{sub.adminAnswer}</p>
-                </div>
-              )}
+                {/* Coordinator Answer if present */}
+                {sub.adminAnswer && (
+                  <div className="bg-slate-900/90 border-l-4 border-l-emerald-500 p-3 rounded text-xs text-slate-200 mt-2">
+                    <span className="font-bold text-emerald-400 block mb-0.5">Response from Anthony DiMarcello III:</span>
+                    <p className="text-slate-300 font-sans">{sub.adminAnswer}</p>
+                  </div>
+                )}
 
               {/* Admin Moderation Tools */}
               {isAdminMode && (
@@ -548,7 +603,8 @@ export const VictimScreenerView: React.FC = () => {
                 </div>
               )}
             </div>
-          ))}
+          );
+        })}
         </div>
       </div>
     </div>

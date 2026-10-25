@@ -12,9 +12,11 @@ import { CinematicDemoOverlay } from './components/CinematicDemoOverlay';
 import { FileViewerModal } from './components/FileViewerModal';
 import { AiAssistantModal } from './components/AiAssistantModal';
 import { StreamlinedCommandHud } from './components/StreamlinedCommandHud';
+import { LeftSideCommandMenu } from './components/LeftSideCommandMenu';
+import { IntegrationsHubView } from './components/IntegrationsHubView';
 import { CINEMATIC_DEMO_SCENES, AppViewportTab } from './data/hbncDemoScript';
-import { playCyberChime, normalizeTextForSpeech, getBestVoiceForPersona, fetchGeminiNeuralAudio } from './utils/audioEngine';
-import { Scale, ShieldAlert, UserCheck, BarChart3, Database, FolderOpen, Gavel } from 'lucide-react';
+import { StudioVoicePersona, playCyberChime, normalizeTextForSpeech, getBestVoiceForPersona, fetchGeminiNeuralAudio } from './utils/audioEngine';
+import { Scale, ShieldAlert, UserCheck, BarChart3, Database, FolderOpen, Gavel, Menu, Eye, EyeOff, Sparkles, KeyRound, Maximize2 } from 'lucide-react';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<AppViewportTab | 'void-deals'>('master');
@@ -22,6 +24,13 @@ export default function App() {
   const [selectedFileDataForModal, setSelectedFileDataForModal] = useState<string | null>(null);
   const [isAiModalOpen, setIsAiModalOpen] = useState(false);
   const [isStreamlinedMode, setIsStreamlinedMode] = useState(true);
+
+  // Left Side Menu & Dock Auto-Hide State
+  const [isLeftMenuOpen, setIsLeftMenuOpen] = useState<boolean>(false);
+  const [dockDisplayMode, setDockDisplayMode] = useState<'autohide' | 'always' | 'hidden'>('autohide');
+  const [isMouseNearTop, setIsMouseNearTop] = useState<boolean>(false);
+  const [selectedAiModel, setSelectedAiModel] = useState<string>('gemini-4-argon');
+  const [selectedVoice, setSelectedVoice] = useState<StudioVoicePersona>('Charon');
 
   // Cinematic Demo State matching reference app
   const [isCinematicDemoActive, setIsCinematicDemoActive] = useState<boolean>(true);
@@ -36,6 +45,35 @@ export default function App() {
   const isVoiceSpeakingRef = useRef<boolean>(true);
   const sceneStartTimestampRef = useRef<number>(Date.now());
   const folderInputRef = useRef<HTMLInputElement | null>(null);
+
+  // Fullscreen change listener to sync React state on ESC
+  useEffect(() => {
+    const handleFsChange = () => {
+      setIsFullScreenCinema(Boolean(document.fullscreenElement));
+    };
+    document.addEventListener('fullscreenchange', handleFsChange);
+    return () => document.removeEventListener('fullscreenchange', handleFsChange);
+  }, []);
+
+  // Track mouse proximity to top of window for smooth auto-hide dock reveal
+  useEffect(() => {
+    let hideTimer: number;
+    const handleMouseMove = (e: MouseEvent) => {
+      if (e.clientY < 75) {
+        window.clearTimeout(hideTimer);
+        setIsMouseNearTop(true);
+      } else if (e.clientY > 180) {
+        hideTimer = window.setTimeout(() => {
+          setIsMouseNearTop(false);
+        }, 300);
+      }
+    };
+    window.addEventListener('mousemove', handleMouseMove);
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.clearTimeout(hideTimer);
+    };
+  }, []);
 
   // When demo scene changes, switch active viewport tab smoothly
   useEffect(() => {
@@ -118,7 +156,7 @@ export default function App() {
   const handleCopySummary = () => {
     const summary = [
       'URGENT INTAKE / CASE EVALUATION REQUEST — HBNC CASE 3',
-      'Parties: Elizabeth Tina Petruccio (DOB 07/29/1964, disabled aerospace worker) & Anthony Michael DiMarcello III (DOB 05/04/1983, caregiver)',
+      'Parties: Elizabeth Tina Petruccio (DOB 07/29/1964, disabled resident) & Anthony Michael DiMarcello III (DOB 05/04/1983, caregiver)',
       'Contact: amd949609@gmail.com',
       'Site: Huntington Beach Navigation Center, 17631 Cameron Lane, Huntington Beach, CA 92648 (Operator: Mercy House Living Centers)',
       'Related Federal Action: Knabb v. City of Huntington Beach et al., No. 8:26-cv-00348-JWH-ADS (C.D. Cal.), SAVC ECF 115 / Opp. MTD ECF 130',
@@ -202,60 +240,127 @@ export default function App() {
         }}
       />
 
-      {/* Sticky Header with Navigation Tabs */}
-      <Header
-        activeTab={activeTab === 'void-deals' ? 'master' : activeTab}
-        setActiveTab={(t) => setActiveTab(t)}
-        onOpenFolderScanner={() => folderInputRef.current?.click()}
-        onCopySummary={handleCopySummary}
-        onToggleDemoAudio={() => setIsCinematicDemoActive(!isCinematicDemoActive)}
-        isDemoAudioPlaying={isCinematicDemoActive && isDemoPlaying}
-        onOpenAiAssistant={() => setIsAiModalOpen(true)}
-      />
+      {/* Left Side Command Menu Trigger Button (Unobtrusive floating tab on left edge) */}
+      {!isFullScreenCinema && (
+        <button
+          onClick={() => setIsLeftMenuOpen(true)}
+          className="fixed left-0 top-1/2 -translate-y-1/2 z-40 bg-slate-950/95 hover:bg-slate-900 border-y border-r border-cyan-500/60 text-cyan-300 hover:text-white px-2 py-3.5 rounded-r-xl shadow-2xl backdrop-blur-xl flex flex-col items-center gap-2 transition-all cursor-pointer group ring-1 ring-cyan-500/30"
+          title="Open Command Menu (Argon 4 &amp; Views)"
+        >
+          <Menu className="w-4 h-4 text-cyan-400 group-hover:scale-110 transition-transform" />
+          <span className="[writing-mode:vertical-lr] rotate-180 text-[10px] font-mono font-bold tracking-widest text-cyan-300">
+            MENU // ARGON 4
+          </span>
+        </button>
+      )}
 
-      {/* Interactive Streamlined Command HUD */}
-      <StreamlinedCommandHud
-        activeTab={activeTab}
-        onSwitchTab={(t) => setActiveTab(t)}
-        onCopySummary={handleCopySummary}
-        onTestVoice={handleTestStudioVoice}
-        isStreamlinedMode={isStreamlinedMode}
-        onToggleStreamlinedMode={() => setIsStreamlinedMode(!isStreamlinedMode)}
-        onOpenFileViewer={handleOpenFileViewer}
-      />
-
-      {/* Sub-bar with Void Ab Initio Deals Tab button */}
-      <div className="bg-slate-900/90 border-b border-slate-800 px-4 py-1.5 flex items-center justify-between text-xs font-mono">
-        <div className="flex items-center gap-3 overflow-x-auto">
-          <span className="text-slate-500 hidden sm:inline">QUICK CORES:</span>
+      {/* Floating Quick Dock Controller & Argon 4 Status Chip at Top */}
+      {!isFullScreenCinema && (
+        <div className="fixed top-2 left-1/2 -translate-x-1/2 z-40 flex items-center gap-2">
           <button
-            onClick={() => setActiveTab('void-deals')}
-            className={`flex items-center gap-1.5 px-2.5 py-1 rounded font-bold transition-all whitespace-nowrap ${
-              activeTab === 'void-deals'
-                ? 'bg-purple-900 text-purple-200 border border-purple-500'
-                : 'text-purple-400 hover:text-purple-300 hover:bg-slate-800'
-            }`}
+            onClick={() => {
+              playCyberChime(1.1);
+              setDockDisplayMode((prev) =>
+                prev === 'autohide' ? 'always' : prev === 'always' ? 'hidden' : 'autohide'
+              );
+            }}
+            className="px-2.5 py-1 rounded-full bg-slate-950/90 hover:bg-slate-900 border border-slate-700/80 text-slate-300 hover:text-white text-[10px] font-mono backdrop-blur-md shadow-xl flex items-center gap-1.5 transition-all cursor-pointer opacity-75 hover:opacity-100"
+            title="Cycle Dock Display Mode: Auto-Hide (Hover Top) / Always Shown / Hidden"
           >
-            <Gavel className="w-3.5 h-3.5" />
-            <span>Form 700 &amp; 2 Void Ab Initio Deals ($320M vs $6.09M)</span>
+            {dockDisplayMode === 'autohide' ? (
+              <>
+                <Eye className="w-3 h-3 text-amber-400" />
+                <span>Docks: Auto-Hide (Hover Top)</span>
+              </>
+            ) : dockDisplayMode === 'always' ? (
+              <>
+                <Eye className="w-3 h-3 text-emerald-400" />
+                <span>Docks: Always Shown</span>
+              </>
+            ) : (
+              <>
+                <EyeOff className="w-3 h-3 text-red-400" />
+                <span>Docks: Hidden (Max Room)</span>
+              </>
+            )}
           </button>
 
-          <a
-            href="/ailaws.html"
-            target="_blank"
-            className="text-blue-400 hover:underline flex items-center gap-1"
+          <button
+            onClick={() => setIsAiModalOpen(true)}
+            className="px-2.5 py-1 rounded-full bg-indigo-950/90 hover:bg-indigo-900 border border-indigo-500/60 text-indigo-300 hover:text-white text-[10px] font-mono backdrop-blur-md shadow-xl flex items-center gap-1.5 transition-all cursor-pointer"
+            title="Gemini 4 Argon &amp; User Profile API Keys Active · Click for AI Assistant"
           >
-            <span>Open Standalone /ailaws.html</span>
-          </a>
+            <Sparkles className="w-3 h-3 text-indigo-400 animate-pulse" />
+            <span>⚡ Argon 4 &middot; Keys Active</span>
+          </button>
         </div>
+      )}
 
-        <div className="text-[11px] text-slate-400 hidden md:block">
-          Case Contact: <a href="mailto:amd949609@gmail.com" className="text-emerald-400 hover:underline">amd949609@gmail.com</a>
+      {/* Top Docks Container: Fades and slides out of view unless mouse is near top, or toggled */}
+      {!isFullScreenCinema && dockDisplayMode !== 'hidden' && (
+        <div
+          className={`sticky top-0 z-30 transition-all duration-300 ease-out transform ${
+            dockDisplayMode === 'always' || isMouseNearTop
+              ? 'opacity-100 translate-y-0 pointer-events-auto shadow-2xl'
+              : 'opacity-0 -translate-y-full pointer-events-none'
+          }`}
+        >
+          {/* Sticky Header with Navigation Tabs */}
+          <Header
+            activeTab={activeTab === 'void-deals' ? 'master' : activeTab}
+            setActiveTab={(t) => setActiveTab(t)}
+            onOpenFolderScanner={() => folderInputRef.current?.click()}
+            onCopySummary={handleCopySummary}
+            onToggleDemoAudio={() => setIsCinematicDemoActive(!isCinematicDemoActive)}
+            isDemoAudioPlaying={isCinematicDemoActive && isDemoPlaying}
+            onOpenAiAssistant={() => setIsAiModalOpen(true)}
+          />
+
+          {/* Interactive Streamlined Command HUD */}
+          <StreamlinedCommandHud
+            activeTab={activeTab}
+            onSwitchTab={(t) => setActiveTab(t)}
+            onCopySummary={handleCopySummary}
+            onTestVoice={handleTestStudioVoice}
+            isStreamlinedMode={isStreamlinedMode}
+            onToggleStreamlinedMode={() => setIsStreamlinedMode(!isStreamlinedMode)}
+            onOpenFileViewer={handleOpenFileViewer}
+          />
+
+          {/* Sub-bar with Void Ab Initio Deals Tab button */}
+          <div className="bg-slate-900/90 border-b border-slate-800 px-4 py-1.5 flex items-center justify-between text-xs font-mono">
+            <div className="flex items-center gap-3 overflow-x-auto">
+              <span className="text-slate-500 hidden sm:inline">QUICK CORES:</span>
+              <button
+                onClick={() => setActiveTab('void-deals')}
+                className={`flex items-center gap-1.5 px-2.5 py-1 rounded font-bold transition-all whitespace-nowrap ${
+                  activeTab === 'void-deals'
+                    ? 'bg-purple-900 text-purple-200 border border-purple-500'
+                    : 'text-purple-400 hover:text-purple-300 hover:bg-slate-800'
+                }`}
+              >
+                <Gavel className="w-3.5 h-3.5" />
+                <span>Form 700 &amp; 2 Void Ab Initio Deals ($320M vs $6.09M)</span>
+              </button>
+
+              <a
+                href="/ailaws.html"
+                target="_blank"
+                className="text-blue-400 hover:underline flex items-center gap-1"
+              >
+                <span>Open Standalone /ailaws.html</span>
+              </a>
+            </div>
+
+            <div className="text-[11px] text-slate-400 hidden md:block">
+              Case Contact: <a href="mailto:amd949609@gmail.com" className="text-emerald-400 hover:underline">amd949609@gmail.com</a>
+            </div>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Main Content Area */}
-      <main className="flex-1 pb-32">
+      <main className={`flex-1 ${isFullScreenCinema ? 'pb-6' : 'pb-24'}`}>
         {activeTab === 'master' && (
           <div className="max-w-6xl mx-auto px-4 py-6">
             <CallToActionHero
@@ -296,19 +401,56 @@ export default function App() {
         {activeTab === 'locker' && (
           <EvidenceLockerView onOpenFileInViewer={handleOpenFileViewer} />
         )}
+
+        {activeTab === 'integrations' && (
+          <IntegrationsHubView
+            onOpenAiAssistant={() => setIsAiModalOpen(true)}
+            onOpenFileViewer={handleOpenFileViewer}
+          />
+        )}
       </main>
 
-      {/* Footer */}
-      <footer className="bg-slate-950 border-t border-slate-800 text-xs text-slate-500 p-6 text-center font-mono">
-        <p className="mb-1 text-slate-400">
-          <b>HBNC Case 3 &middot; OSINT Neo AI Command Center &middot; /ailaws Matrix &middot; Outreach Dashboard</b>
-        </p>
-        <p>
-          Prepared by Anthony Michael DiMarcello III and Elizabeth Tina Petruccio &middot; Party-Prepared Evidentiary Archive &middot; amd949609@gmail.com
-        </p>
-      </footer>
+      {/* Footer (hidden in fullscreen) */}
+      {!isFullScreenCinema && (
+        <footer className="bg-slate-950 border-t border-slate-800 text-xs text-slate-500 p-6 text-center font-mono">
+          <p className="mb-1 text-slate-400">
+            <b>HBNC Case 3 &middot; OSINT Neo AI Command Center &middot; /ailaws Matrix &middot; Outreach Dashboard</b>
+          </p>
+          <p>
+            Prepared by Anthony Michael DiMarcello III and Elizabeth Tina Petruccio &middot; Party-Prepared Evidentiary Archive &middot; amd949609@gmail.com
+          </p>
+        </footer>
+      )}
 
-      {/* Cinematic Demo Overlay (matching reference app) */}
+      {/* Left Side Command Menu Drawer (Does not obstruct main dashboard) */}
+      <LeftSideCommandMenu
+        isOpen={isLeftMenuOpen}
+        onClose={() => setIsLeftMenuOpen(false)}
+        activeTab={activeTab}
+        onSwitchTab={(t) => setActiveTab(t)}
+        isDemoActive={isCinematicDemoActive}
+        onToggleDemoActive={() => setIsCinematicDemoActive(!isCinematicDemoActive)}
+        isDemoPlaying={isDemoPlaying}
+        onTogglePlayDemo={() => setIsDemoPlaying(!isDemoPlaying)}
+        currentDemoSceneIdx={currentDemoSceneIdx}
+        onSelectDemoScene={(idx) => {
+          setCurrentDemoSceneIdx(idx);
+          setDemoSceneProgress(0);
+        }}
+        selectedVoice={selectedVoice}
+        onChangeVoice={setSelectedVoice}
+        onTestVoice={handleTestStudioVoice}
+        dockMode={dockDisplayMode}
+        onChangeDockMode={setDockDisplayMode}
+        isFullScreenCinema={isFullScreenCinema}
+        onToggleFullScreen={handleToggleFullScreen}
+        onOpenAiModal={() => setIsAiModalOpen(true)}
+        selectedAiModel={selectedAiModel}
+        onChangeAiModel={setSelectedAiModel}
+        onCopySummary={handleCopySummary}
+      />
+
+      {/* Cinematic Demo Overlay */}
       <CinematicDemoOverlay
         isActive={isCinematicDemoActive}
         onExitDemo={() => setIsCinematicDemoActive(false)}
@@ -333,6 +475,7 @@ export default function App() {
         }}
         fontScale={fontScale}
         onChangeFontScale={setFontScale}
+        onOpenFileViewer={handleOpenFileViewer}
       />
 
       {/* Modals */}
